@@ -1,3 +1,5 @@
+package com.github.ekumen.rosjava_actionlib;
+
 import com.github.ekumen.rosjava_actionlib.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
@@ -109,16 +111,16 @@ public class TestClientStateMachine {
   }
 
   @Test
-  public void testGetTrasition() {
-    Vector<Integer> expected;
-    expected = new Vector<>(Arrays.asList(ClientStateMachine.ClientStates.PENDING));
+  public void testGetTransition() {
+    Vector<Integer> expectedResult;
+    expectedResult = new Vector<>(Arrays.asList(ClientStateMachine.ClientStates.PENDING));
     checkGetTransition(ClientStateMachine.ClientStates.WAITING_FOR_GOAL_ACK,
-      actionlib_msgs.GoalStatus.PENDING, expected);
+      actionlib_msgs.GoalStatus.PENDING, expectedResult);
 
-    expected = new Vector<>(Arrays.asList(ClientStateMachine.ClientStates.PENDING,
+    expectedResult = new Vector<>(Arrays.asList(ClientStateMachine.ClientStates.PENDING,
       ClientStateMachine.ClientStates.WAITING_FOR_RESULT));
     checkGetTransition(ClientStateMachine.ClientStates.WAITING_FOR_GOAL_ACK,
-      actionlib_msgs.GoalStatus.REJECTED, expected);
+      actionlib_msgs.GoalStatus.REJECTED, expectedResult);
   }
 
   private void checkGetTransition(int initialState, int goalStatus, Vector<Integer> expected) {

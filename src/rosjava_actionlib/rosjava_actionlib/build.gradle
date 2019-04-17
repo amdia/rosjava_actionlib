@@ -20,33 +20,39 @@ mainClassName = 'org.ros.RosRun'
 
 /*
  Dependencies can be on external maven artifacts (such as rosjava_core
- here) or on sibling subprojects. Fpr external maven artifact dependencies
+ here) or on sibling subprojects. For external maven artifact dependencies
  it's convenient to use an open ranged dependency, but restrict it to
  cover the patch version only to avoid breakages due to api changes
  which usually occur on minor and major version numbers.
 */
 
 dependencies {
-  /* An external maven artifact dependency */
+    /* An external maven artifact dependency */
 
-  compile 'org.ros.rosjava_core:rosjava:[0.2,0.3)'
-  compile 'org.apache.directory.studio:org.apache.commons.logging:[1.1,1.2)'
-  testCompile 'junit:junit:4.12'
+    compile 'org.ros.rosjava_core:rosjava:[0.2.1,0.3)'
+    compile 'org.apache.directory.studio:org.apache.commons.logging:[1.1,1.2)'
+    testCompile 'junit:junit:4.12'
 
-  /* Example of a local subproject dependency */
-  /* compile project(':sibling_gradle_project') */
+    /* Example of a local subproject dependency */
+    /* compile project(':sibling_gradle_project') */
 
-   compile 'org.ros.rosjava_messages:actionlib_tutorials:[0.1,)'
+    compile 'org.ros.rosjava_messages:actionlib_tutorials:[0.1,)'
+    compile 'org.ros.rosjava_messages:actionlib_msgs:[1.12.7,)'
+    compile group: 'org.ros.rosjava_bootstrap', name: 'message_generation', version:'0.2.1'
+
+    compile group: 'org.ros.rosjava_messages', name: 'geometry_msgs', version:'1.11.7'
+    compile group: 'org.ros.rosjava_messages', name: 'nav_msgs', version: '1.11.7'
+    compile group: 'org.ros.rosjava_messages', name: 'std_msgs', version: '0.5.9'
 }
 
-task deployApp(dependsOn: 'installApp') << {
-  File binDir = new File(project.projectDir, '/bin')
-  if (! binDir.isDirectory()) {
-    println "Creating $binDir directory"
-    binDir.mkdirs()
-  }
-  File link = new File(binDir,"execute")
-  File target = new File(project.projectDir, "build/install/$project.name/bin/$project.name")
-  //println "Creating symlink from $link.absolutePath to $target.absolutePath"
-  ant.symlink(link: link.absolutePath, resource: target.absolutePath, overwrite: true)
-}
+//task deployApp(dependsOn: 'installApp')  {
+//  File binDir = new File(project.projectDir, '/bin')
+//  if (! binDir.isDirectory()) {
+//    println "Creating $binDir directory"
+//    binDir.mkdirs()
+//  }
+//  File link = new File(binDir,"execute")
+//  File target = new File(project.projectDir, "build/install/$project.name/bin/$project.name")
+//  //println "Creating symlink from $link.absolutePath to $target.absolutePath"
+//  ant.symlink(link: link.absolutePath, resource: target.absolutePath, overwrite: true)
+//}

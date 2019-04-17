@@ -14,8 +14,8 @@
  * the License.
  */
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+wrapper{
+    gradleVersion = '5.3.1'
 }
 
 repositories {
@@ -24,7 +24,7 @@ repositories {
 }
 
 buildscript {
-  apply from: "https://github.com/rosjava/rosjava_bootstrap/raw/indigo/buildscript.gradle"
+  apply from: "https://github.com/rosjava/rosjava_bootstrap/raw/kinetic/buildscript.gradle"
 }
 
 apply plugin: 'catkin'
@@ -35,8 +35,8 @@ allprojects {
       A github url provides a good standard unique name for your project
       Example below, but you may wish to switch to your own unique url.
     */
-    group 'com.github.rosjava.actionlib'
-    version = project.catkin.pkg.version
+    group 'com.github.SpyrosKou.rosjava_actionlib'
+   // version = project.catkin.pkg.version
 }
 
 subprojects {
@@ -58,7 +58,7 @@ subprojects {
      * Some IDE support if you use it.
      */
     /* apply plugin: "eclipse" */
-    /* apply plugin: "idea"    */
+    apply plugin: "idea"
 }
 
 /*

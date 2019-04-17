@@ -38,7 +38,7 @@ import org.apache.commons.logging.Log;
  * Class to test the actionlib client.
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class TestClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
+class TestClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
   static {
     // comment this line if you want logs activated
     System.setProperty("org.apache.commons.logging.Log",
