@@ -1,4 +1,4 @@
-package com.github.ekumen.rosjava_actionlib;
+package eu.test.actionlib.clientServer;
 
 /**
  * Copyright 2015 Ekumen www.ekumenlabs.com
@@ -21,6 +21,8 @@ import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import actionlib_msgs.GoalStatusArray;
 import actionlib_tutorials.*;
+import com.github.ekumen.rosjava_actionlib.*;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.ros.message.Duration;
@@ -39,8 +41,8 @@ import java.util.List;
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  * @author Spryos Koukas
  */
-class TestClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
-    private static final Logger logger= LoggerFactory.getLogger(TestClient.class);
+class ActionLibClientFeedback extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
+    private static final Logger logger= LoggerFactory.getLogger(ActionLibClientFeedback.class);
     static {
         // comment this line if you want logs activated
         System.setProperty("org.apache.commons.logging.Log",
@@ -84,12 +86,12 @@ class TestClient extends AbstractNodeMain implements ActionClientListener<Fibona
 
         // Attach listener for the callbacks
         actionClient.addListener(this);
-        System.out.println("\nWaiting for action server to start...");
-        serverStarted = actionClient.waitForActionServerToStart(new Duration(20));
+        logger.trace("\nWaiting for action server to start...");
+        serverStarted = actionClient.waitForActionServerToStart(new Duration(200));
         if (serverStarted) {
-            System.out.println("Action server started.\n");
+            logger.trace("Action server started.\n");
         } else {
-            System.out.println("No actionlib server found after waiting for " + serverTimeout.totalNsecs() / 1e9 + " seconds!");
+            logger.trace("No actionlib server found after waiting for " + serverTimeout.totalNsecs() / 1e9 + " seconds!");
             System.exit(1);
         }
 
@@ -98,33 +100,33 @@ class TestClient extends AbstractNodeMain implements ActionClientListener<Fibona
         final FibonacciGoal fibonacciGoal = goalMessage.getGoal();
         // set Fibonacci parameter
         fibonacciGoal.setOrder(3);
-        System.out.println("Sending goal...");
+        logger.trace("Sending goal...");
         actionClient.sendGoal(goalMessage);
         final GoalID gid1 = ActionLibMessagesUtils.getGoalId(goalMessage);
-        System.out.println("Sent goal with ID: " + gid1.getId());
-        System.out.println("Waiting for goal to complete...");
+        logger.trace("Sent goal with ID: " + gid1.getId());
+        logger.trace("Waiting for goal to complete...");
         while (actionClient.getGoalState() != ActionLibClientStates.DONE) {
             sleep(1);
         }
-        System.out.println("Goal completed!\n");
+        logger.trace("Goal completed!\n");
 
-        System.out.println("Sending a new goal...");
+        logger.trace("Sending a new goal...");
         actionClient.sendGoal(goalMessage);
         final GoalID gid2 = ActionLibMessagesUtils.getGoalId(goalMessage);
-        System.out.println("Sent goal with ID: " + gid2.getId());
-        System.out.println("Cancelling this goal...");
+        logger.trace("Sent goal with ID: " + gid2.getId());
+        logger.trace("Cancelling this goal...");
         actionClient.sendCancel(gid2);
         while (actionClient.getGoalState() != ActionLibClientStates.DONE) {
             sleep(1);
         }
-        System.out.println("Goal cancelled succesfully.\n");
-        System.out.println("Bye!");
+        logger.trace("Goal cancelled succesfully.\n");
+        logger.trace("Bye!");
 
     }
 
     @Override
     public void onStart(ConnectedNode node) {
-        actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, "/fibonacci", FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
+        actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, ActionLibServerFeedback.DEFAULT_ACTION_NAME, FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
         log = node.getLog();
         this.isStarted=true;
 
@@ -141,7 +143,7 @@ class TestClient extends AbstractNodeMain implements ActionClientListener<Fibona
         System.out.print("Got Fibonacci result sequence: ");
         for (i = 0; i < sequence.length; i++)
             System.out.print(Integer.toString(sequence[i]) + " ");
-        System.out.println("");
+        logger.trace("");
     }
 
     @Override

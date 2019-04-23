@@ -16,55 +16,58 @@
 
 package com.github.ekumen.rosjava_actionlib;
 
-import java.lang.reflect.Method;
-import org.ros.internal.message.Message;
-import org.ros.message.Time;
-import std_msgs.Header;
-import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.ros.internal.message.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import std_msgs.Header;
+
+import java.lang.reflect.Method;
 
 /**
  * Class to encapsulate the action feedback object.
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class ActionResult<T_ACTION_RESULT extends Message> {
-  private T_ACTION_RESULT actionResultMessage = null;
+public final class ActionResult<T_ACTION_RESULT extends Message> {
+  private static final Logger logger= LoggerFactory.getLogger(ActionResult.class);
+  private final T_ACTION_RESULT actionResultMessage;
 
   public ActionResult(T_ACTION_RESULT msg) {
     actionResultMessage = msg;
   }
 
-  public Header getHeaderMessage() {
+  public final Header getHeaderMessage() {
     Header h = null;
     if (actionResultMessage != null) {
       try {
-        Method m = actionResultMessage.getClass().getMethod("getHeader");
+        final Method m = actionResultMessage.getClass().getMethod("getHeader");
         m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
         h = (Header)m.invoke(actionResultMessage);
       }
-      catch (Exception e) {
-        e.printStackTrace(System.out);
+      catch (final Exception e) {
+        logger.error(ExceptionUtils.getStackTrace(e));
       }
     }
     return h;
   }
 
-  public GoalStatus getGoalStatusMessage() {
+  public final GoalStatus getGoalStatusMessage() {
     GoalStatus gs = null;
     if (actionResultMessage != null) {
       try {
-        Method m = actionResultMessage.getClass().getMethod("getStatus");
+        final Method m = actionResultMessage.getClass().getMethod("getStatus");
         m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
         gs = (GoalStatus)m.invoke(actionResultMessage);
       }
-      catch (Exception e) {
-        e.printStackTrace(System.out);
+      catch (final Exception e) {
+        logger.error(ExceptionUtils.getStackTrace(e));
       }
     }
     return gs;
   }
 
-  public Message getResultMessage() {
+  public final Message getResultMessage() {
     Message x = null;
     if (actionResultMessage != null) {
       try {

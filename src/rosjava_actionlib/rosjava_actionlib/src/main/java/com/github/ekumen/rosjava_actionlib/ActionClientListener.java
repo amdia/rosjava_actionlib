@@ -26,8 +26,7 @@ import actionlib_msgs.GoalStatusArray;
  * with information from the server.
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public interface ActionClientListener<T_ACTION_FEEDBACK extends Message,
-  T_ACTION_RESULT extends Message> {
+public interface ActionClientListener<T_ACTION_FEEDBACK extends Message, T_ACTION_RESULT extends Message> {
   /**
    * Called when a result message is received from the server.
    * @param result Result message from the server. The type of this message

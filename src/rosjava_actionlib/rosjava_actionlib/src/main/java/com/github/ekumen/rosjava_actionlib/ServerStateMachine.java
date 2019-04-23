@@ -16,8 +16,8 @@
 
 package com.github.ekumen.rosjava_actionlib;
 
-import java.lang.Exception;
 import actionlib_msgs.GoalStatus;
+
 
 /*
  * Class to manage the server state machine transitions.
@@ -48,7 +48,7 @@ public class ServerStateMachine {
     state = s;
   }
 
-  public synchronized int transition(int event) throws Exception {
+  public synchronized int transition(final int event) throws Exception {
     int nextState = state;
     switch (state) {
       case GoalStatus.PENDING:
@@ -63,7 +63,7 @@ public class ServerStateMachine {
             nextState = GoalStatus.ACTIVE;
             break;
           default:
-            throw new Exception("Actionlib server exception: Invalid transition event!");
+            throw new IllegalStateException("Actionlib server exception: Invalid transition event! Event:"+event+" state:"+state);
         }
         break;
       case GoalStatus.RECALLING:
@@ -78,7 +78,7 @@ public class ServerStateMachine {
             nextState = GoalStatus.PREEMPTING;
             break;
           default:
-            throw new Exception("Actionlib server exception: Invalid transition event!");
+            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
         }
         break;
       case GoalStatus.ACTIVE:
@@ -93,7 +93,7 @@ public class ServerStateMachine {
             nextState = GoalStatus.ABORTED;
             break;
           default:
-            throw new Exception("Actionlib server exception: Invalid transition event!");
+            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
         }
         break;
       case GoalStatus.PREEMPTING:
@@ -108,7 +108,7 @@ public class ServerStateMachine {
             nextState = GoalStatus.ABORTED;
             break;
           default:
-            throw new Exception("Actionlib server exception: Invalid transition event!");
+            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
         }
         break;
       case GoalStatus.REJECTED:
@@ -122,7 +122,7 @@ public class ServerStateMachine {
       case GoalStatus.ABORTED:
         break;
       default:
-        throw new Exception("Actionlib server exception: Invalid state!");
+        throw new IllegalStateException("Actionlib server exception: Invalid state!");
     }
     // transition to the next state
     state = nextState;

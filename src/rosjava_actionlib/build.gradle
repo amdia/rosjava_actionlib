@@ -13,10 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-wrapper{
-    gradleVersion = '5.3.1'
-}
+//sourceCompatibility = 1.8
 
 repositories {
   mavenLocal()
@@ -27,19 +24,7 @@ buildscript {
   apply from: "https://github.com/rosjava/rosjava_bootstrap/raw/kinetic/buildscript.gradle"
 }
 
-apply plugin: 'catkin'
-apply plugin: 'java'
-
 allprojects {
-    /*
-      A github url provides a good standard unique name for your project
-      Example below, but you may wish to switch to your own unique url.
-    */
-    group 'com.github.SpyrosKou.rosjava_actionlib'
-   // version = project.catkin.pkg.version
-}
-
-subprojects {
     /*
      * The ros plugin configures a few things:
      *
@@ -58,7 +43,45 @@ subprojects {
      * Some IDE support if you use it.
      */
     /* apply plugin: "eclipse" */
-    apply plugin: "idea"
+    /* apply plugin: "idea" */
+    apply plugin: "java"
+
+    dependencies {
+        compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.7'
+        compile 'org.apache.logging.log4j:log4j-core:2.7'
+        /* An external maven artifact dependency */
+
+        compile 'org.apache.commons:commons-lang3:3.4'
+        compile 'org.apache.commons:commons-collections4:4.1'
+        compile 'org.apache.commons:commons-configuration2:2.3'
+
+        compile 'org.ros.rosjava_core:rosjava:[0.2.1,0.3)'
+        compile 'org.apache.directory.studio:org.apache.commons.logging:[1.1,1.2)'
+        testCompile 'junit:junit:4.12'
+
+        /* Example of a local subproject dependency */
+        /* compile project(':sibling_gradle_project') */
+
+        testCompile 'org.ros.rosjava_messages:actionlib_tutorials:0.1.10'
+        compile 'org.ros.rosjava_messages:actionlib_msgs:1.12.7'
+
+        compile 'org.ros.rosjava_messages:actionlib:1.11.13'
+
+        //compile 'org.ros.rosjava_messages:cob_actions:0.6.10'
+
+        //compile 'org.ros.rosjava_messages:rocon_interaction_msgs:0.9.0'
+        testCompile 'org.ros.rosjava_messages:turtle_actionlib:0.1.10'
+        //  compile 'org.ros.rosjava_messages:turtlebot_actions:2.3.7'
+
+        compile group: 'org.ros.rosjava_bootstrap', name: 'message_generation', version:'0.2.1'
+        compile 'com.google.guava:guava:27.1-jre'
+
+        compile group: 'org.ros.rosjava_messages', name: 'geometry_msgs', version:'1.11.7'
+        compile group: 'org.ros.rosjava_messages', name: 'nav_msgs', version: '1.11.7'
+        compile group: 'org.ros.rosjava_messages', name: 'std_msgs', version: '0.5.9'
+
+
+    }
 }
 
 /*
@@ -74,3 +97,7 @@ subprojects {
   in CMakeLists.txt
 */
 defaultTasks 'tasks'
+
+wrapper{
+    gradleVersion = '5.3.1'
+}

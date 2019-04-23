@@ -16,11 +16,12 @@
 
 package com.github.ekumen.rosjava_actionlib;
 
-import java.lang.reflect.Method;
+import actionlib_msgs.GoalID;
 import org.ros.internal.message.Message;
 import org.ros.message.Time;
 import std_msgs.Header;
-import actionlib_msgs.GoalID;
+
+import java.lang.reflect.Method;
 
 /**
  * Class to encapsulate the action goal object.
@@ -214,47 +215,55 @@ public class ActionGoal<T_ACTION_GOAL extends Message> {
     return gid;
   }
 
-  public void setGoalIdMessage(GoalID gid) {
+  /**
+   *
+   * @param gid
+   */
+  public void setGoalIdMessage(final GoalID gid) {
 
   }
 
+  /**
+   *
+   * @return
+   */
   public T_ACTION_GOAL getActionGoalMessage() {
     return goalMessage;
   }
 
-  public void setActionGoalMessage(T_ACTION_GOAL agm) {
+  /**
+   *
+   * @param agm
+   */
+  public void setActionGoalMessage(final T_ACTION_GOAL agm) {
     goalMessage = agm;
   }
 
+  /**
+   *
+   * @return
+   */
   public Message getGoalMessage() {
-    Message g = null;
-    if (goalMessage != null) {
-      try {
-        Method m = goalMessage.getClass().getMethod("getGoal");
-        m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-        g = (Message)m.invoke(goalMessage);
-      }
-      catch (Exception e) {
-        e.printStackTrace(System.out);
-      }
-    }
-    return g;
+
+    return ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage,"getGoal");
+
   }
 
-  public void setGoalMessage(Message gm) {
-    if (goalMessage != null) {
-      try {
-        Method m = goalMessage.getClass().getMethod("setGoal", Message.class);
-        m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-        m.invoke(goalMessage, gm);
-      }
-      catch (Exception e) {
-        e.printStackTrace(System.out);
-      }
-    }
+  /**
+   *
+   * @param message
+   */
+  public void setGoalMessage(final Message message) {
+    ActionLibMessagesUtils.setSubMessageFromMessage(this.goalMessage,message,"setGoal");
+
   }
 
-  public boolean equals(ActionGoal ag) {
+  /**
+   *
+   * @param ag
+   * @return
+   */
+  public boolean equals(final ActionGoal ag) {
     return (this.getGoalId() == ag.getGoalId());
   }
 }

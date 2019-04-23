@@ -16,29 +16,44 @@
 
 package com.github.ekumen.rosjava_actionlib;
 
-import java.util.List;
+import actionlib_msgs.GoalID;
+import actionlib_tutorials.FibonacciActionFeedback;
+import actionlib_tutorials.FibonacciActionGoal;
+import actionlib_tutorials.FibonacciActionResult;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.ros.internal.message.Message;
-import actionlib_tutorials.FibonacciActionGoal;
-import actionlib_tutorials.FibonacciActionFeedback;
-import actionlib_tutorials.FibonacciActionResult;
-import actionlib_tutorials.FibonacciGoal;
-import actionlib_tutorials.FibonacciFeedback;
-import actionlib_tutorials.FibonacciResult;
-import actionlib_msgs.GoalStatusArray;
-import actionlib_msgs.GoalID;
-import actionlib_msgs.GoalStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  /**
+/**
    * Class to test the actionlib server.
    * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
    */
 class TestServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
+  private static final Logger logger= LoggerFactory.getLogger(TestServer.class);
   private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> as = null;
   private volatile FibonacciActionGoal currentGoal = null;
 
+    private volatile boolean isStarted=false;
+
+    /**
+     * Getter for isStarted
+     *
+     * @return isStarted
+     **/
+    public void waitForStart() {
+      while(!this.isStarted){
+        try{
+          Thread.sleep(5);
+        }catch (final InterruptedException ie){
+          logger.error(ExceptionUtils.getStackTrace(ie));
+        }catch (final Exception e){
+          logger.error(ExceptionUtils.getStackTrace(e));
+        }
+      }
+    }
   @Override
   public GraphName getDefaultNodeName() {
     return GraphName.of("fibonacci_test_server");
@@ -54,7 +69,7 @@ class TestServer extends AbstractNodeMain implements ActionServerListener<Fibona
       FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
 
     as.attachListener(this);
-
+    this.isStarted=true;
     while(true) {
       if (currentGoal != null) {
         result = as.newResultMessage();
@@ -67,6 +82,7 @@ class TestServer extends AbstractNodeMain implements ActionServerListener<Fibona
         currentGoal = null;
       }
     }
+
   }
 
   @Override

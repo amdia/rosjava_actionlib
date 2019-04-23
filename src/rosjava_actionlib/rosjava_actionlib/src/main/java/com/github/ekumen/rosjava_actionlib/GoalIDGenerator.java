@@ -17,8 +17,8 @@
 
 package com.github.ekumen.rosjava_actionlib;
 
-import org.ros.message.Time;
 import actionlib_msgs.GoalID;
+import org.ros.message.Time;
 import org.ros.node.ConnectedNode;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,55 +27,48 @@ import java.util.concurrent.atomic.AtomicLong;
  * The GoalIDGenerator may be used to create unique GoalIDs.
  *
  * <p>
- * The node's nodeName will be used and the time on the node.
+ * The connectedNode's nodeName will be used and the time on the connectedNode.
  *
  * @author Alexander C. Perzylo, perzylo@cs.tum.edu
  */
-public class GoalIDGenerator {
-  /**
-   * A global ID which provide a count for each goal id.
-   */
-  private static AtomicLong goalCount = new AtomicLong(0);
+final class GoalIDGenerator {
+    /**
+     * A global ID which provide a count for each goal id.
+     */
+    private static AtomicLong goalCount = new AtomicLong(0);
 
-  /**
-   * Unique nodeName to prepend to the goal id. This will generally be a fully
-   * qualified node nodeName.
-   */
-  private ConnectedNode node;
+    /**
+     * Unique nodeName to prepend to the goal id. This will generally be a fully
+     * qualified connectedNode nodeName.
+     */
+    private final ConnectedNode connectedNode;
 
-  /**
-   * Constructor to create a GoalIDGenerator using a unique nodeName to prepend to
-   * the goal id. This will generally be a fully qualified node nodeName.
-   *
-   * @param node
-   *          The node used to generate IDs. The node's full nodeName should be
-   *          unique in the system.
-   */
-  public GoalIDGenerator(ConnectedNode node) {
-    this.node = node;
-  }
 
-  /**
-   * Creates a GoalID object with an unique id and a timestamp of the current
-   * time.
-   *
-   * @return GoalID object
-   */
-  public String generateID(GoalID goalId) {
-    String id;
-    Time t = node.getCurrentTime();
-    //NodeConfiguration nc = NodeConfiguration.newPrivate();
-    //MessageFactory mf = nc.getTopicMessageFactory();
-    //GoalID id = mf.newFromType(GoalID._TYPE);
+    /**
+     * Constructor to create a GoalIDGenerator using a unique nodeName to prepend to
+     * the goal id. This will generally be a fully qualified connectedNode nodeName.
+     *
+     * @param connectedNode The connectedNode used to generate IDs. The connectedNode's full nodeName should be
+     *                      unique in the system.
+     */
+    GoalIDGenerator(ConnectedNode connectedNode) {
+        this.connectedNode = connectedNode;
 
-    //StringBuilder sb = new StringBuilder(node.getName().toString());
-    //sb.append("-").append(goalCount.incrementAndGet()).append("-").append(t.secs).append(".").append(t.nsecs);
-    id = node.getName().toString() + "-" + goalCount.incrementAndGet()
-      + "-" + t.secs + "." + t.nsecs;
+    }
 
-    goalId.setId(id);
-    goalId.setStamp(t);
+    /**
+     * Creates a GoalID object with an unique id and a timestamp of the current
+     * time.
+     *
+     * @return GoalID object
+     */
+    final String generateID(final GoalID goalId) {
+        final Time t = connectedNode.getCurrentTime();
+        final String id = connectedNode.getName().toString() + "-" + goalCount.incrementAndGet() + "-" + t.secs + "." + t.nsecs;
 
-    return id;
-  }
+        goalId.setId(id);
+        goalId.setStamp(t);
+
+        return id;
+    }
 }
