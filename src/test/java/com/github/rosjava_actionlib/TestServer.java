@@ -1,4 +1,4 @@
-/**
+package com.github.rosjava_actionlib; /**
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +19,6 @@ import actionlib_msgs.GoalID;
 import actionlib_tutorials.FibonacciActionFeedback;
 import actionlib_tutorials.FibonacciActionGoal;
 import actionlib_tutorials.FibonacciActionResult;
-import com.github.rosjava_actionlib.ActionServer;
-import com.github.rosjava_actionlib.ActionServerListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;

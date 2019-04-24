@@ -1,5 +1,5 @@
-import com.github.rosjava_actionlib.ClientState;
-import com.github.rosjava_actionlib.ClientStateMachine;
+package com.github.rosjava_actionlib;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,11 +11,11 @@ import static org.junit.Assert.*;
 
 public class TestClientStateMachine {
     private ClientStateMachine subject;
-
+    private static final ClientState INITIAL_CLIENT_STATE=ClientState.ERROR;
     // Executes before each test.
     @Before
     public void setUp() {
-        subject = new ClientStateMachine();
+        subject = new ClientStateMachine(ClientState.ERROR);
     }
 
     @Test
@@ -29,17 +29,18 @@ public class TestClientStateMachine {
 
     @Test
     public void testSetState() {
+        assertEquals(subject.getState(), INITIAL_CLIENT_STATE);
         ClientState expectedState = ClientState.WAITING_FOR_GOAL_ACK;
-        assertEquals(subject.getState(), 0);
+        assertNotEquals(INITIAL_CLIENT_STATE, ClientState.WAITING_FOR_GOAL_ACK);
         subject.setState(expectedState);
         assertEquals(expectedState, subject.getState());
     }
 
     @Test
     public void testUpdateStatusWhenStateIsNotDone() {
-        int expectedStatus = 7;
+        ClientState expectedStatus = ClientState.DONE;
         subject.setState(ClientState.WAITING_FOR_GOAL_ACK);
-        assertEquals(0, subject.getLatestGoalStatus());
+        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, subject.getLatestGoalStatus());
         subject.updateStatus(expectedStatus);
         assertEquals(expectedStatus, subject.getLatestGoalStatus());
     }
@@ -47,9 +48,9 @@ public class TestClientStateMachine {
     @Test
     public void testUpdateStatusWhenStateIsDone() {
         subject.setState(ClientState.DONE);
-        assertEquals(0, subject.getLatestGoalStatus());
-        subject.updateStatus(7);
-        assertEquals(0, subject.getLatestGoalStatus());
+        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, subject.getLatestGoalStatus());
+        subject.updateStatus(ClientState.DONE);
+        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, subject.getLatestGoalStatus());
     }
 
     @Test
@@ -113,15 +114,12 @@ public class TestClientStateMachine {
 
     @Test
     public void testGetTrasition() {
-        LinkedList<ClientState> expected;
-        expected = new LinkedList<>(Arrays.asList(ClientState.PENDING));
-        checkGetTransition(ClientState.WAITING_FOR_GOAL_ACK,
-                actionlib_msgs.GoalStatus.PENDING, expected);
 
-        expected = new LinkedList<>(Arrays.asList(ClientState.PENDING,
-                ClientState.WAITING_FOR_RESULT));
-        checkGetTransition(ClientState.WAITING_FOR_GOAL_ACK,
-                actionlib_msgs.GoalStatus.REJECTED, expected);
+        LinkedList<ClientState>  expected = new LinkedList<>(Arrays.asList(ClientState.PENDING));
+        checkGetTransition(ClientState.WAITING_FOR_GOAL_ACK,actionlib_msgs.GoalStatus.PENDING, expected);
+
+        expected = new LinkedList<>(Arrays.asList(ClientState.PENDING,ClientState.WAITING_FOR_RESULT));
+        checkGetTransition(ClientState.WAITING_FOR_GOAL_ACK,actionlib_msgs.GoalStatus.REJECTED, expected);
     }
 
     private void checkGetTransition(ClientState initialState, int goalStatus, List<ClientState> expected) {

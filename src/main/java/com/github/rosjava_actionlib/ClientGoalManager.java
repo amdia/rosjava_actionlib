@@ -24,20 +24,44 @@ import org.ros.internal.message.Message;
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
 public class ClientGoalManager<T_ACTION_GOAL extends Message> {
-    ActionGoal<T_ACTION_GOAL> actionGoal = null;
-    ClientStateMachine stateMachine = null;
+    private ActionGoal<T_ACTION_GOAL> actionGoal = null;
+    private ClientStateMachine stateMachine = null;
 
-    public ClientGoalManager(ActionGoal<T_ACTION_GOAL> ag) {
-        actionGoal = ag;
-        stateMachine = new ClientStateMachine();
-        stateMachine.setState(ClientState.ERROR);
+    /**
+     * Getter for stateMachine
+     *
+     * @return stateMachine
+     **/
+    final ClientStateMachine getStateMachine() {
+        return stateMachine;
     }
 
-    public void setGoal(ActionGoal<T_ACTION_GOAL> ag) {
+    /**
+     * Getter for actionGoal
+     *
+     * @return actionGoal
+     **/
+    final ActionGoal<T_ACTION_GOAL> getActionGoal() {
+        return actionGoal;
+    }
+
+    /**
+     *
+     * @param ag
+     */
+    public ClientGoalManager(ActionGoal<T_ACTION_GOAL> ag) {
         actionGoal = ag;
-        if (stateMachine != null && stateMachine.isRunning()) stateMachine.setState(-3);
-        stateMachine = new ClientStateMachine();
-        stateMachine.setState(ClientState.WAITING_FOR_GOAL_ACK);
+        stateMachine = new ClientStateMachine(ClientState.ERROR);
+    }
+
+    /**
+     *
+     * @param ag
+     */
+    public void setGoal(ActionGoal<T_ACTION_GOAL> ag) {
+        this.actionGoal = ag;
+        if (stateMachine != null && stateMachine.isRunning()) stateMachine.setState(ClientState.ERROR);
+        stateMachine = new ClientStateMachine(ClientState.WAITING_FOR_GOAL_ACK);
     }
 
     public void setGoal(T_ACTION_GOAL agm) {

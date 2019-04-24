@@ -16,6 +16,7 @@
 
 package com.github.rosjava_actionlib;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,37 +29,52 @@ import java.util.stream.Collectors;
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class ClientStateMachine {
+final class ClientStateMachine {
 
-    ClientState latestGoalStatus;
-    ClientState state;
-    int nextState;
-    private Log log = LogFactory.getLog(ActionClient.class);
-
-    public synchronized void setState(int state) {
-        log.info("ClientStateMachine - State changed from " + this.state + " to " + state);
-        this.state = ClientState.from(state);
+    /**
+     * A ClientStateMachine should always have an existing state.
+     *
+     * @param initialState
+     */
+    ClientStateMachine(final ClientState initialState) {
+        Objects.requireNonNull(initialState);
+        this.state = initialState;
     }
 
-    public synchronized void setState(ClientState state) {
+    private ClientState latestGoalStatus;
+    private ClientState state;
+    private Log log = LogFactory.getLog(ActionClient.class);
+
+
+    /**
+     * @param state
+     */
+    final synchronized void setState(final ClientState state) {
+        Objects.requireNonNull(state);
         log.info("ClientStateMachine - State changed from " + this.state + " to " + state);
         this.state = state;
     }
 
-    public synchronized ClientState getState() {
+     final synchronized ClientState getState() {
         return this.state;
     }
 
     /**
+     * @deprecated enforce Enum usage
      * Update the state of the client based on the current state and the goal state.
      */
-    public synchronized void updateStatus(int status) {
+    @Deprecated
+     final synchronized void updateStatus(int status) {
         if (this.state != ClientState.DONE) {
             this.latestGoalStatus = ClientState.from(status);
         }
     }
 
-    public synchronized void updateStatus(ClientState status) {
+    /**
+     * Update the state of the client based on the current state and the goal state.
+     * @param status
+     */
+    final synchronized void updateStatus(ClientState status) {
         if (this.state != ClientState.DONE) {
             this.latestGoalStatus = status;
         }
@@ -69,7 +85,7 @@ public class ClientStateMachine {
      *
      * @param goalStatus Status of the goal.
      */
-    public synchronized void transition(int goalStatus) {
+     final synchronized void transition(int goalStatus) {
         List<ClientState> nextStates;
         Iterator<ClientState> iterStates;
 
@@ -89,17 +105,18 @@ public class ClientStateMachine {
      * goal state.
      *
      * @param goalStatus The current status of the tracked goal.
+     *
      * @return A vector with the list of next states. The states should be
      * transitioned in order. This is necessary because if we loose a state update
      * we might still be able to infer the actual transition history that took us
      * to the final goal state.
      */
-    public List<Integer> getTransitionInteger(int goalStatus) {
+    final List<Integer> getTransitionInteger(int goalStatus) {
         return getTransition(goalStatus).stream().map(ClientState::getValue).collect(Collectors.toList());
     }
 
 
-    public List<ClientState> getTransition(int goalStatus) {
+    final List<ClientState> getTransition(int goalStatus) {
         List<ClientState> stateList = new LinkedList<>();
 
         switch (this.state) {
@@ -385,7 +402,7 @@ public class ClientStateMachine {
      *
      * @return True if the goal can be cancelled, false otherwise.
      */
-    public boolean cancel() {
+    final boolean cancel() {
         ArrayList<ClientState> cancellableStates = new ArrayList<>(Arrays.asList(ClientState.WAITING_FOR_GOAL_ACK,
                 ClientState.PENDING, ClientState.ACTIVE));
         boolean shouldCancel = cancellableStates.contains(state);
@@ -396,7 +413,7 @@ public class ClientStateMachine {
         return shouldCancel;
     }
 
-    public void resultReceived() {
+    final void resultReceived() {
         if (state == ClientState.WAITING_FOR_RESULT) {
             state = ClientState.DONE;
         } else {
@@ -405,18 +422,19 @@ public class ClientStateMachine {
     }
 
     // TODO: implement method
-    public void markAsLost() {
+    final void markAsLost() {
+        throw new NotImplementedException("Not Implemented");
     }
 
-    public boolean isRunning() {
+    final boolean isRunning() {
         return state.getValue() >= 0 && state.getValue() < 7;
     }
 
-    public int getLatestGoalStatusInteger() {
+    final int getLatestGoalStatusInteger() {
         return latestGoalStatus.getValue();
     }
 
-    public ClientState getLatestGoalStatus() {
+    final ClientState getLatestGoalStatus() {
         return latestGoalStatus;
     }
 }

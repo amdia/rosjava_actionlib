@@ -271,7 +271,7 @@ public class ActionClient<T_ACTION_GOAL extends Message,
      */
     public void gotResult(T_ACTION_RESULT message) {
         ActionResult<T_ACTION_RESULT> ar = new ActionResult(message);
-        if (ar.getGoalStatusMessage().getGoalId().getId().equals(goalManager.actionGoal.getGoalId())) {
+        if (ar.getGoalStatusMessage().getGoalId().getId().equals(goalManager.getActionGoal().getGoalId())) {
             goalManager.updateStatus(ar.getGoalStatusMessage().getStatus());
         }
         goalManager.resultReceived();
@@ -289,7 +289,7 @@ public class ActionClient<T_ACTION_GOAL extends Message,
      */
     public void gotFeedback(T_ACTION_FEEDBACK message) {
         ActionFeedback<T_ACTION_FEEDBACK> af = new ActionFeedback(message);
-        if (af.getGoalStatusMessage().getGoalId().getId().equals(goalManager.actionGoal.getGoalId())) {
+        if (af.getGoalStatusMessage().getGoalId().getId().equals(goalManager.getActionGoal().getGoalId())) {
             goalManager.updateStatus(af.getGoalStatusMessage().getStatus());
         }
         // Propagate the callback
@@ -333,8 +333,8 @@ public class ActionClient<T_ACTION_GOAL extends Message,
         GoalStatus gstat = null;
         List<GoalStatus> statusList = statusMessage.getStatusList();
         for (GoalStatus s : statusList) {
-            log.info("Found >> " + s.getGoalId().getId() + " when searching for >> " + goalManager.actionGoal.getGoalId());
-            if (s.getGoalId().getId().equals(goalManager.actionGoal.getGoalId())) {
+            log.info("Found >> " + s.getGoalId().getId() + " when searching for >> " + goalManager.getActionGoal().getGoalId());
+            if (s.getGoalId().getId().equals(goalManager.getActionGoal().getGoalId())) {
                 // this is the goal we are interested in
                 gstat = s;
             }
@@ -414,7 +414,7 @@ public class ActionClient<T_ACTION_GOAL extends Message,
 
 
     public boolean isActive() {
-        return goalManager.stateMachine.isRunning();
+        return goalManager.getStateMachine().isRunning();
     }
 
     /**

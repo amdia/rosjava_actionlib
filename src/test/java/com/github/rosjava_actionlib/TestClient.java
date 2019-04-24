@@ -1,4 +1,4 @@
-/**
+package com.github.rosjava_actionlib; /**
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,8 @@ import com.github.rosjava_actionlib.ActionClient;
 import com.github.rosjava_actionlib.ActionClientListener;
 import com.github.rosjava_actionlib.ClientState;
 import org.apache.commons.logging.Log;
+
+
 import org.ros.message.Duration;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;

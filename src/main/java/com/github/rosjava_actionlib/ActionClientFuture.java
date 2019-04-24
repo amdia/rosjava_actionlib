@@ -52,7 +52,7 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
 
     @Override
     public ClientState getCurrentState() {
-        return goalManager.stateMachine.getState();
+        return goalManager.getStateMachine().getState();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
 
     @Override
     public boolean isCancelled() {
-        if (goalManager.stateMachine.isRunning()) {
+        if (goalManager.getStateMachine().isRunning()) {
             return result == null;
         } else {
             return false;
@@ -73,12 +73,12 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
 
     @Override
     public boolean isDone() {
-        return !goalManager.stateMachine.isRunning();
+        return !goalManager.getStateMachine().isRunning();
     }
 
     @Override
     public T_RESULT get() throws InterruptedException, ExecutionException {
-        while (goalManager.stateMachine.isRunning()) {
+        while (goalManager.getStateMachine().isRunning()) {
             Thread.sleep(100);
         }
         disconnect();
@@ -88,7 +88,7 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
     @Override
     public T_RESULT get(long l, TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException {
         long timeout = System.currentTimeMillis() + tu.toMillis(l);
-        while (goalManager.stateMachine.isRunning()) {
+        while (goalManager.getStateMachine().isRunning()) {
             if (timeout > System.currentTimeMillis()) {
                 throw new TimeoutException();
             }
