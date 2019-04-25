@@ -31,8 +31,13 @@ import java.util.stream.Collectors;
  */
 final class ClientStateMachine {
 
+
+    private ClientState latestGoalStatus=null;
+    private ClientState state;
+    private final Log log = LogFactory.getLog(ActionClient.class);
+
     /**
-     * A ClientStateMachine should always have an existing state.
+     * A ClientStateMachine should always have an existing starting state.
      *
      * @param initialState
      */
@@ -40,10 +45,6 @@ final class ClientStateMachine {
         Objects.requireNonNull(initialState);
         this.state = initialState;
     }
-
-    private ClientState latestGoalStatus;
-    private ClientState state;
-    private Log log = LogFactory.getLog(ActionClient.class);
 
 
     /**
@@ -74,7 +75,7 @@ final class ClientStateMachine {
      * Update the state of the client based on the current state and the goal state.
      * @param status
      */
-    final synchronized void updateStatus(ClientState status) {
+    final synchronized void updateStatus(final ClientState status) {
         if (this.state != ClientState.DONE) {
             this.latestGoalStatus = status;
         }
@@ -430,10 +431,10 @@ final class ClientStateMachine {
         return state.getValue() >= 0 && state.getValue() < 7;
     }
 
-    final int getLatestGoalStatusInteger() {
-        return latestGoalStatus.getValue();
-    }
-
+    /**
+     *
+     * @return
+     */
     final ClientState getLatestGoalStatus() {
         return latestGoalStatus;
     }
