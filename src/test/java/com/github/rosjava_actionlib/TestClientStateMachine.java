@@ -10,47 +10,46 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class TestClientStateMachine {
-    private ClientStateMachine subject;
+    private ClientStateMachine clientStateMachine;
     private static final ClientState INITIAL_CLIENT_STATE=ClientState.ERROR;
     // Executes before each test.
     @Before
     public void setUp() {
-        subject = new ClientStateMachine(ClientState.ERROR);
+        clientStateMachine = new ClientStateMachine(ClientState.ERROR);
     }
 
     @Test
     public void testGetState() {
         ClientState expectedState = ClientState.WAITING_FOR_GOAL_ACK;
         ClientState actualState;
-        subject.setState(expectedState);
-        actualState = subject.getState();
+        clientStateMachine.setState(expectedState);
+        actualState = clientStateMachine.getState();
         assertEquals(expectedState, actualState);
     }
 
     @Test
     public void testSetState() {
-        assertEquals(subject.getState(), INITIAL_CLIENT_STATE);
+        assertEquals(clientStateMachine.getState(), INITIAL_CLIENT_STATE);
         ClientState expectedState = ClientState.WAITING_FOR_GOAL_ACK;
         assertNotEquals(INITIAL_CLIENT_STATE, ClientState.WAITING_FOR_GOAL_ACK);
-        subject.setState(expectedState);
-        assertEquals(expectedState, subject.getState());
+        clientStateMachine.setState(expectedState);
+        assertEquals(expectedState, clientStateMachine.getState());
     }
 
     @Test
     public void testUpdateStatusWhenStateIsNotDone() {
-        ClientState expectedStatus = ClientState.DONE;
-        subject.setState(ClientState.WAITING_FOR_GOAL_ACK);
-        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, subject.getLatestGoalStatus());
-        subject.updateStatus(expectedStatus);
-        assertEquals(expectedStatus, subject.getLatestGoalStatus());
+        clientStateMachine.setState(ClientState.WAITING_FOR_GOAL_ACK);
+        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, clientStateMachine.getLatestGoalStatus());
+        clientStateMachine.updateStatus(ClientState.DONE);
+        assertEquals(ClientState.DONE, clientStateMachine.getLatestGoalStatus());
     }
 
     @Test
     public void testUpdateStatusWhenStateIsDone() {
-        subject.setState(ClientState.DONE);
-        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, subject.getLatestGoalStatus());
-        subject.updateStatus(ClientState.DONE);
-        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, subject.getLatestGoalStatus());
+        clientStateMachine.setState(ClientState.DONE);
+        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, clientStateMachine.getLatestGoalStatus());
+        clientStateMachine.updateStatus(ClientState.DONE);
+        assertEquals(ClientState.WAITING_FOR_GOAL_ACK, clientStateMachine.getLatestGoalStatus());
     }
 
     @Test
@@ -73,23 +72,23 @@ public class TestClientStateMachine {
     }
 
     private void checkCancelOnInitialCancellableState(ClientState initialState) {
-        subject.setState(initialState);
-        assertTrue("Failed test on initial state " + initialState, subject.cancel());
-        assertEquals("Failed test on initial state " + initialState, ClientState.WAITING_FOR_CANCEL_ACK, subject.getState());
+        clientStateMachine.setState(initialState);
+        assertTrue("Failed test on initial state " + initialState, clientStateMachine.cancel());
+        assertEquals("Failed test on initial state " + initialState, ClientState.WAITING_FOR_CANCEL_ACK, clientStateMachine.getState());
     }
 
 
     private void checkCancelOnInitialNonCancellableState(ClientState initialState) {
-        subject.setState(initialState);
-        assertFalse("Failed test on initial state " + initialState, subject.cancel());
-        assertEquals("Failed test on initial state " + initialState, initialState, subject.getState());
+        clientStateMachine.setState(initialState);
+        assertFalse("Failed test on initial state " + initialState, clientStateMachine.cancel());
+        assertEquals("Failed test on initial state " + initialState, initialState, clientStateMachine.getState());
     }
 
     @Test
     public void testResultReceivedWhileWaitingForResult() {
-        subject.setState(ClientState.WAITING_FOR_RESULT);
-        subject.resultReceived();
-        assertEquals(ClientState.DONE, subject.getState());
+        clientStateMachine.setState(ClientState.WAITING_FOR_RESULT);
+        clientStateMachine.resultReceived();
+        assertEquals(ClientState.DONE, clientStateMachine.getState());
     }
 
     @Test
@@ -107,9 +106,9 @@ public class TestClientStateMachine {
     }
 
     private void checkResultReceivedWhileNotWaitingForResult(ClientState state) {
-        subject.setState(state);
-        subject.resultReceived();
-        assertEquals("Failed test on initial state " + state, ClientState.ERROR, subject.getState());
+        clientStateMachine.setState(state);
+        clientStateMachine.resultReceived();
+        assertEquals("Failed test on initial state " + state, ClientState.ERROR, clientStateMachine.getState());
     }
 
     @Test
@@ -122,9 +121,9 @@ public class TestClientStateMachine {
         checkGetTransition(ClientState.WAITING_FOR_GOAL_ACK,actionlib_msgs.GoalStatus.REJECTED, expected);
     }
 
-    private void checkGetTransition(ClientState initialState, int goalStatus, List<ClientState> expected) {
-        subject.setState(initialState);
-        List<Integer> output = subject.getTransitionInteger(goalStatus);
+    private final void checkGetTransition(ClientState initialState, int goalStatus, List<ClientState> expected) {
+        clientStateMachine.setState(initialState);
+        List<ClientState> output = clientStateMachine.getTransitionInteger(goalStatus);
         assertEquals(expected, output);
     }
 }

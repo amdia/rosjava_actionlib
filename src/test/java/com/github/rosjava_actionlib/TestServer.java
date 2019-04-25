@@ -19,23 +19,43 @@ import actionlib_msgs.GoalID;
 import actionlib_tutorials.FibonacciActionFeedback;
 import actionlib_tutorials.FibonacciActionGoal;
 import actionlib_tutorials.FibonacciActionResult;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class to test the actionlib server.
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
 public class TestServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
+    private static final Logger logger= LoggerFactory.getLogger(TestClient.class);
     private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> as = null;
     private volatile FibonacciActionGoal currentGoal = null;
+    private volatile boolean isStarted=false;
 
     @Override
     public GraphName getDefaultNodeName() {
         return GraphName.of("fibonacci_test_server");
     }
-
+/**
+     * Getter for isStarted
+     *
+     * @return isStarted
+     **/
+    public void waitForStart() {
+      while(!this.isStarted){
+        try{
+          Thread.sleep(5);
+        }catch (final InterruptedException ie){
+          logger.error(ExceptionUtils.getStackTrace(ie));
+        }catch (final Exception e){
+          logger.error(ExceptionUtils.getStackTrace(e));
+        }
+      }
+    }
     @Override
     public void onStart(ConnectedNode node) {
         FibonacciActionResult result;
@@ -45,7 +65,7 @@ public class TestServer extends AbstractNodeMain implements ActionServerListener
                 FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
 
         as.attachListener(this);
-
+ 		this.isStarted=true;
         while (node != null) {
             if (currentGoal != null) {
                 result = as.newResultMessage();
