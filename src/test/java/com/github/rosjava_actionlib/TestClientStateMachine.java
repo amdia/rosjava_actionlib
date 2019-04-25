@@ -37,15 +37,18 @@ public class TestClientStateMachine {
     }
 
     @Test
-    public void testUpdateStatusWhenStateIsNotDone() {
+    public void testUpdateStatusWhenStateIsNotDoneAndStatusIsWaitingForGoalAck() {
         clientStateMachine.setState(ClientState.WAITING_FOR_GOAL_ACK);
+        clientStateMachine.updateStatus(ClientState.WAITING_FOR_GOAL_ACK);
         assertEquals(ClientState.WAITING_FOR_GOAL_ACK, clientStateMachine.getLatestGoalStatus());
         clientStateMachine.updateStatus(ClientState.DONE);
         assertEquals(ClientState.DONE, clientStateMachine.getLatestGoalStatus());
     }
 
+
     @Test
-    public void testUpdateStatusWhenStateIsDone() {
+    public void testUpdateStatusWhenStateIsDoneAndStatusIsWaitingForGoalAck() {
+        clientStateMachine.updateStatus(ClientState.WAITING_FOR_GOAL_ACK);
         clientStateMachine.setState(ClientState.DONE);
         assertEquals(ClientState.WAITING_FOR_GOAL_ACK, clientStateMachine.getLatestGoalStatus());
         clientStateMachine.updateStatus(ClientState.DONE);
