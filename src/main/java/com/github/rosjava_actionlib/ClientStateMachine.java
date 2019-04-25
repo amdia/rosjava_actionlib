@@ -124,8 +124,8 @@ final class ClientStateMachine {
      * we might still be able to infer the actual transition history that took us
      * to the final goal state.
      */
-    final List<Integer> getTransitionInteger(int goalStatus) {
-        return getTransition(goalStatus).stream().map(ClientState::getValue).collect(Collectors.toList());
+    final List<ClientState> getTransitionInteger(int goalStatus) {
+        return getTransition(goalStatus).stream().collect(Collectors.toList());
     }
 
 

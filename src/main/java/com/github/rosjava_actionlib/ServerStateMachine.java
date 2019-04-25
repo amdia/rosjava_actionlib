@@ -62,7 +62,7 @@ public class ServerStateMachine {
                         nextState = GoalStatus.ACTIVE;
                         break;
                     default:
-                        throw new Exception("Actionlib server exception: Invalid transition event!");
+                        throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
                 }
                 break;
             case GoalStatus.RECALLING:
@@ -77,7 +77,7 @@ public class ServerStateMachine {
                         nextState = GoalStatus.PREEMPTING;
                         break;
                     default:
-                        throw new Exception("Actionlib server exception: Invalid transition event!");
+                        throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
                 }
                 break;
             case GoalStatus.ACTIVE:
@@ -92,7 +92,7 @@ public class ServerStateMachine {
                         nextState = GoalStatus.ABORTED;
                         break;
                     default:
-                        throw new Exception("Actionlib server exception: Invalid transition event!");
+                        throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
                 }
                 break;
             case GoalStatus.PREEMPTING:
@@ -107,7 +107,7 @@ public class ServerStateMachine {
                         nextState = GoalStatus.ABORTED;
                         break;
                     default:
-                        throw new Exception("Actionlib server exception: Invalid transition event!");
+                        throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
                 }
                 break;
             case GoalStatus.REJECTED:
