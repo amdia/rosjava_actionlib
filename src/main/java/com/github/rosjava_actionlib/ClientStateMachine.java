@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 final class ClientStateMachine {
 
 
-    private ClientState latestGoalStatus=null;
+    private ClientState latestGoalStatus = null;
     private ClientState state;
     private final Log log = LogFactory.getLog(ActionClient.class);
 
@@ -42,8 +42,19 @@ final class ClientStateMachine {
      * @param initialState
      */
     ClientStateMachine(final ClientState initialState) {
+        this.resetToState(initialState);
+
+    }
+
+    /**
+     * Completely resets this {@link ClientStateMachine} to the specified starting state.
+     *
+     * @param initialState
+     */
+    final void resetToState(final ClientState initialState) {
         Objects.requireNonNull(initialState);
         this.state = initialState;
+        this.latestGoalStatus = null;
     }
 
 
@@ -56,7 +67,7 @@ final class ClientStateMachine {
         this.state = state;
     }
 
-     final synchronized ClientState getState() {
+    final synchronized ClientState getState() {
         return this.state;
     }
 
@@ -65,7 +76,7 @@ final class ClientStateMachine {
      * Update the state of the client based on the current state and the goal state.
      */
     @Deprecated
-     final synchronized void updateStatus(int status) {
+    final synchronized void updateStatus(int status) {
         if (this.state != ClientState.DONE) {
             this.latestGoalStatus = ClientState.from(status);
         }
@@ -73,6 +84,7 @@ final class ClientStateMachine {
 
     /**
      * Update the state of the client based on the current state and the goal state.
+     *
      * @param status
      */
     final synchronized void updateStatus(final ClientState status) {
@@ -86,7 +98,7 @@ final class ClientStateMachine {
      *
      * @param goalStatus Status of the goal.
      */
-     final synchronized void transition(int goalStatus) {
+    final synchronized void transition(int goalStatus) {
         List<ClientState> nextStates;
         Iterator<ClientState> iterStates;
 
@@ -414,6 +426,15 @@ final class ClientStateMachine {
         return shouldCancel;
     }
 
+    /**
+     * Signal that the result has been received.
+     * <p>
+     * If this {@link ClientStateMachine} is in an {@link ClientState#WAITING_FOR_RESULT}
+     * then its next state will be a{@link ClientState#DONE} state.
+     * <p>
+     * If this {@link ClientStateMachine} is not in an {@link ClientState#WAITING_FOR_RESULT}
+     * then its next state will be a {@link ClientState#ERROR} state.
+     */
     final void resultReceived() {
         if (state == ClientState.WAITING_FOR_RESULT) {
             state = ClientState.DONE;
@@ -432,7 +453,6 @@ final class ClientStateMachine {
     }
 
     /**
-     *
      * @return
      */
     final ClientState getLatestGoalStatus() {

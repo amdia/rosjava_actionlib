@@ -25,7 +25,7 @@ import org.ros.internal.message.Message;
  */
 public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     private ActionGoal<T_ACTION_GOAL> actionGoal = null;
-    private ClientStateMachine stateMachine = null;
+    private final ClientStateMachine stateMachine;
 
     /**
      * Getter for stateMachine
@@ -61,7 +61,7 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     public void setGoal(ActionGoal<T_ACTION_GOAL> ag) {
         this.actionGoal = ag;
         if (stateMachine != null && stateMachine.isRunning()) stateMachine.setState(ClientState.ERROR);
-        stateMachine = new ClientStateMachine(ClientState.WAITING_FOR_GOAL_ACK);
+        stateMachine.resetToState(ClientState.WAITING_FOR_GOAL_ACK);
     }
 
     public void setGoal(T_ACTION_GOAL agm) {
@@ -74,6 +74,9 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
         return stateMachine.cancel();
     }
 
+    /**
+     * Signal that the result has been received.
+     */
     public void resultReceived() {
         stateMachine.resultReceived();
     }
