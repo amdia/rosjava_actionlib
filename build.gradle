@@ -59,6 +59,9 @@ dependencies {
     compile 'org.apache.directory.studio:org.apache.commons.logging:[1.1,1.2)'
     compile 'org.ros.rosjava_messages:actionlib_msgs:[1.11.0,1.14.0)'
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.7'
+    compile 'org.apache.logging.log4j:log4j-core:2.7'
+    
     testCompile 'junit:junit:4.12'
     testCompile 'org.ros.rosjava_messages:actionlib_tutorials:[0.1,)'
 
