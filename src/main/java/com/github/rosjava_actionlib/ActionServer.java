@@ -25,7 +25,6 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class ActionServer<T_ACTION_GOAL extends Message,
+public final class ActionServer<T_ACTION_GOAL extends Message,
         T_ACTION_FEEDBACK extends Message,
         T_ACTION_RESULT extends Message> {
 
@@ -106,6 +105,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
      * Publish the current status information for the tracked goals on the /status topic.
      *
      * @param status GoalStatusArray message containing the status to send.
+     *
      * @see actionlib_msgs.GoalStatusArray
      */
     public void sendStatus(GoalStatusArray status) {
@@ -256,7 +256,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
         Vector<GoalStatus> goalStatusList = new Vector<GoalStatus>();
 
         try {
-            for(java.util.Iterator<ServerGoal> sgIterator = goalTracker.values().iterator(); sgIterator.hasNext();) {
+            for (java.util.Iterator<ServerGoal> sgIterator = goalTracker.values().iterator(); sgIterator.hasNext(); ) {
                 ServerGoal sg = sgIterator.next();
                 goalStatus = node.getTopicMessageFactory().newFromType(GoalStatus._TYPE);
                 goalStatus.setGoalId(getGoalId(sg.goal));
@@ -285,17 +285,12 @@ public class ActionServer<T_ACTION_GOAL extends Message,
      * Returns the goal ID object related to a given action goal.
      *
      * @param goal An action goal message.
+     *
      * @return The goal ID object.
      */
     public GoalID getGoalId(T_ACTION_GOAL goal) {
-        GoalID gid = null;
-        try {
-            Method m = goal.getClass().getMethod("getGoalId");
-            m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-            gid = (GoalID) m.invoke(goal);
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+
+        final GoalID gid = ActionLibMessagesUtils.getSubMessageFromMessage(goal, "getGoalId");
         return gid;
     }
 
@@ -303,7 +298,9 @@ public class ActionServer<T_ACTION_GOAL extends Message,
      * Get the current state of the referenced goal.
      *
      * @param goalId String representing the ID of the goal.
+     *
      * @return The current state of the goal or -100 if the goal ID is not tracked.
+     *
      * @see actionlib_msgs.GoalStatus
      */
     public int getGoalState(String goalId) {
@@ -356,6 +353,7 @@ public class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param gstat     GoalStatus message.
      * @param gidString String identifying the goal.
+     *
      * @see actionlib_msgs.GoalStatus
      */
     public void setGoalStatus(GoalStatus gstat, String gidString) {

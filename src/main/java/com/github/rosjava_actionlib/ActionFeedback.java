@@ -20,8 +20,6 @@ import actionlib_msgs.GoalStatus;
 import org.ros.internal.message.Message;
 import std_msgs.Header;
 
-import java.lang.reflect.Method;
-
 /**
  * Class to encapsulate the action feedback object.
  *
@@ -34,45 +32,24 @@ public class ActionFeedback<T_ACTION_FEEDBACK extends Message> {
         actionFeedbackMessage = fmsg;
     }
 
-    public Header getHeaderMessage() {
-        Header h = null;
-        if (actionFeedbackMessage != null) {
-            try {
-                Method m = actionFeedbackMessage.getClass().getMethod("getHeader");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                h = (Header) m.invoke(actionFeedbackMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
-        }
-        return h;
+    /**
+     *
+     * @return
+     */
+    public final Header getHeaderMessage() {
+        final Header header = ActionLibMessagesUtils.getSubMessageFromMessage(actionFeedbackMessage, "getHeader");
+        return header;
     }
 
     public GoalStatus getGoalStatusMessage() {
-        GoalStatus gs = null;
-        if (actionFeedbackMessage != null) {
-            try {
-                Method m = actionFeedbackMessage.getClass().getMethod("getStatus");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                gs = (GoalStatus) m.invoke(actionFeedbackMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
-        }
-        return gs;
+
+        final GoalStatus goalStatus = ActionLibMessagesUtils.getSubMessageFromMessage(actionFeedbackMessage, "getStatus");
+        return goalStatus;
+
     }
 
     public Message getFeedbackMessage() {
-        Message x = null;
-        if (actionFeedbackMessage != null) {
-            try {
-                Method m = actionFeedbackMessage.getClass().getMethod("getFeedback");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                x = (Message) m.invoke(actionFeedbackMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
-        }
-        return x;
-    }
+        final Message message = ActionLibMessagesUtils.getSubMessageFromMessage(actionFeedbackMessage, "getFeedback");
+        return message;
+   }
 }
