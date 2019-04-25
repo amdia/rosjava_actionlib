@@ -20,14 +20,12 @@ import actionlib_msgs.GoalStatus;
 import org.ros.internal.message.Message;
 import std_msgs.Header;
 
-import java.lang.reflect.Method;
-
 /**
  * Class to encapsulate the action feedback object.
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class ActionResult<T_ACTION_RESULT extends Message> {
+public final class ActionResult<T_ACTION_RESULT extends Message> {
     private T_ACTION_RESULT actionResultMessage = null;
 
     public ActionResult(T_ACTION_RESULT msg) {
@@ -35,44 +33,26 @@ public class ActionResult<T_ACTION_RESULT extends Message> {
     }
 
     public Header getHeaderMessage() {
-        Header h = null;
-        if (actionResultMessage != null) {
-            try {
-                Method m = actionResultMessage.getClass().getMethod("getHeader");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                h = (Header) m.invoke(actionResultMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        Header header = null;
+        if (this.actionResultMessage != null) {
+            header = ActionLibMessagesUtils.getSubMessageFromMessage(this.actionResultMessage, "getHeader");
         }
-        return h;
+        return header;
     }
 
     public GoalStatus getGoalStatusMessage() {
-        GoalStatus gs = null;
-        if (actionResultMessage != null) {
-            try {
-                Method m = actionResultMessage.getClass().getMethod("getStatus");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                gs = (GoalStatus) m.invoke(actionResultMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        GoalStatus goalStatus = null;
+        if (this.actionResultMessage != null) {
+            goalStatus = ActionLibMessagesUtils.getSubMessageFromMessage(this.actionResultMessage, "getStatus");
         }
-        return gs;
+        return goalStatus;
     }
 
     public Message getResultMessage() {
-        Message x = null;
-        if (actionResultMessage != null) {
-            try {
-                Method m = actionResultMessage.getClass().getMethod("getResult");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                x = (Message) m.invoke(actionResultMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        Message resultMessage= null;
+        if (this.actionResultMessage != null) {
+            resultMessage = ActionLibMessagesUtils.getSubMessageFromMessage(this.actionResultMessage, "getResult");
         }
-        return x;
+        return resultMessage;
     }
 }

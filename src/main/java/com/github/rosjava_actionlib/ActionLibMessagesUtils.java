@@ -16,7 +16,7 @@ import java.util.Objects;
  *
  * @author Spyros Koukas
  */
-public final class ActionLibMessagesUtils {
+final class ActionLibMessagesUtils {
     private static final Logger logger = LoggerFactory.getLogger(ActionLibMessagesUtils.class);
     public static final String UNKNOWN_GOAL_STATUS = "UNKNOWN GOAL STATUS";
 
@@ -146,26 +146,6 @@ public final class ActionLibMessagesUtils {
 
     }
 
-    /**
-     * Convenience method for setting the goal ID of an action goal message.
-     *
-     * @param goal The action goal message to set the goal ID for.
-     * @param gid  The goal ID object.
-     *
-     * @see GoalID
-     */
-	 @Deprecated
-    public static final void setGoalId(final Message goal, GoalID gid) {
-//        Objects.requireNonNull(goal);
-//        try {
-//            Method m = goal.getClass().getMethod("setGoalId", GoalID.class);
-//            m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-//            m.invoke(goal, gid);
-//        } catch (Exception e) {
-//            logger.error(ExceptionUtils.getStackTrace(e));
-//        }
-        setSubMessageFromMessage(goal, gid, "setGoalId");
-    }
 
     /**
      * Return the submessage of class R_SUB_MESSAGE from the message T_MESSAGE by using the getter with the provided name in order to workaround known bug.

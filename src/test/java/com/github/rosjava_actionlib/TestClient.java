@@ -94,7 +94,7 @@ public class TestClient extends AbstractNodeMain implements ActionClientListener
         fibonacciGoal.setOrder(3);
         System.out.println("Sending goal...");
         actionClient.sendGoal(goalMessage);
-        final GoalID gid1 = ActionLibMessagesUtils.getGoalId(goalMessage);
+        final GoalID gid1 = goalMessage.getGoalId();
         System.out.println("Sent goal with ID: " + gid1.getId());
         System.out.println("Waiting for goal to complete...");
         while (actionClient.getGoalState() != ClientState.DONE) {
@@ -104,7 +104,7 @@ public class TestClient extends AbstractNodeMain implements ActionClientListener
 
         System.out.println("Sending a new goal...");
         actionClient.sendGoal(goalMessage);
-        final GoalID gid2 = ActionLibMessagesUtils.getGoalId(goalMessage);
+        final GoalID gid2 = goalMessage.getGoalId();
         System.out.println("Sent goal with ID: " + gid2.getId());
         System.out.println("Cancelling this goal...");
         actionClient.sendCancel(gid2);

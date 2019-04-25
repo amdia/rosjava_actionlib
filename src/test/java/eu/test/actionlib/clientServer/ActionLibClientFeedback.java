@@ -21,7 +21,6 @@ import actionlib_msgs.GoalStatusArray;
 import actionlib_tutorials.*;
 import com.github.rosjava_actionlib.ActionClient;
 import com.github.rosjava_actionlib.ActionClientListener;
-import com.github.rosjava_actionlib.ActionLibMessagesUtils;
 import com.github.rosjava_actionlib.ClientState;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
@@ -102,7 +101,7 @@ class ActionLibClientFeedback extends AbstractNodeMain implements ActionClientLi
         fibonacciGoal.setOrder(3);
         logger.trace("Sending goal...");
         actionClient.sendGoal(goalMessage);
-        final GoalID gid1 = ActionLibMessagesUtils.getGoalId(goalMessage);
+        final GoalID gid1 = goalMessage.getGoalId();
         logger.trace("Sent goal with ID: " + gid1.getId());
         logger.trace("Waiting for goal to complete...");
         while (actionClient.getGoalState() != ClientState.DONE) {
@@ -112,7 +111,7 @@ class ActionLibClientFeedback extends AbstractNodeMain implements ActionClientLi
 
         logger.trace("Sending a new goal...");
         actionClient.sendGoal(goalMessage);
-        final GoalID gid2 = ActionLibMessagesUtils.getGoalId(goalMessage);
+        final GoalID gid2 = goalMessage.getGoalId();
         logger.trace("Sent goal with ID: " + gid2.getId());
         logger.trace("Cancelling this goal...");
         actionClient.sendCancel(gid2);

@@ -21,7 +21,6 @@ import org.ros.internal.message.Message;
 import org.ros.message.Time;
 import std_msgs.Header;
 
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -78,47 +77,28 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      * @see org.ros.message.Time
      */
     public Time getHeaderTimestamp() {
-        Time t = null;
-        Header h = getHeaderMessage();
-        if (h != null) {
-            try {
-                Method m = h.getClass().getMethod("getStamp");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                t = (Time) m.invoke(h);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        Time time = null;
+        final Header header = getHeaderMessage();
+        if (header != null) {
+            time=ActionLibMessagesUtils.getSubMessageFromMessage(header,"getStamp");
         }
-        return t;
+        return time;
     }
 
     /**
      * Sets the time stamp for the action goal message's header.
      *
-     * @param t The time stamp (org.ros.message.Time) of the std_msgs.Header.
+     * @param time The time stamp (org.ros.message.Time) of the std_msgs.Header.
      *
      * @see org.ros.message.Time
      */
-    public void setHeaderTimestamp(Time t) {
-        Header h = getHeaderMessage();
-        if (h != null) {
-            try {
-                Method m = h.getClass().getMethod("setStamp", Time.class);
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                m.invoke(h, t);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+    public void setHeaderTimestamp(final Time time) {
+        final Header header = getHeaderMessage();
+        if (header != null) {
+            ActionLibMessagesUtils.setSubMessageFromMessage(header,time,"setStamp");
         }
     }
 
-    public String getHeaderFrameId() {
-        return null;
-    }
-
-    public void setHeaderFrameId(String id) {
-
-    }
 
     /**
      * Return the standard actionlib header message for this action goal.
@@ -128,21 +108,12 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      * @see std_msgs.Header
      */
     public Header getHeaderMessage() {
-        Header h = null;
-        if (goalMessage != null) {
-            try {
-                Method m = goalMessage.getClass().getMethod("getHeader");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                h = (Header) m.invoke(goalMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        Header header= null;
+        if (this.goalMessage != null) {
+            header=ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage,"getHeader");
+
         }
-        return h;
-    }
-
-    public void setHeaderMessage(Header h) {
-
+        return header;
     }
 
     /**
@@ -150,16 +121,10 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      * @return
      */
     public final String getGoalId() {
-        String id = null;
-        GoalID gid = getGoalIdMessage();
+       String id = null;
+       final GoalID gid = getGoalIdMessage();
         if (gid != null) {
-            try {
-                Method m = gid.getClass().getMethod("getId");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                id = (String) m.invoke(gid);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+            id=ActionLibMessagesUtils.getSubMessageFromMessage(gid,"getId");
         }
         return id;
     }
@@ -170,19 +135,12 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      * @param id Identification string for this goal.
      * @param t  Time stamp (org.ros.message.Time).
      */
-    public void setGoalId(String id, Time t) {
-        GoalID gid = getGoalIdMessage();
+    public void setGoalId(final String id,final Time time) {
+        final GoalID gid = getGoalIdMessage();
         if (gid != null) {
-            try {
-                Method m = gid.getClass().getMethod("setId", String.class);
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                m.invoke(gid, id);
-                m = gid.getClass().getMethod("setStamp", Time.class);
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                m.invoke(gid, t);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+
+            ActionLibMessagesUtils.setSubMessageFromMessage(gid,id,"setId");
+            ActionLibMessagesUtils.setSubMessageFromMessage(gid,time,"setStamp");
         }
     }
 
@@ -203,14 +161,9 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      */
     public GoalID getGoalIdMessage() {
         GoalID gid = null;
-        if (goalMessage != null) {
-            try {
-                Method m = goalMessage.getClass().getMethod("getGoalId");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                gid = (GoalID) m.invoke(goalMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        if (this.goalMessage != null) {
+            gid=ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage, "getGoalId");
+
         }
         return gid;
     }
@@ -237,25 +190,20 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      * @return
      */
     public Message getGoalMessage() {
-        Message g = null;
-        if (goalMessage != null) {
-            try {
-                Method m = goalMessage.getClass().getMethod("getGoal");
-                m.setAccessible(true); // workaround for known bug http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6924232
-                g = (Message) m.invoke(goalMessage);
-            } catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
+        Message message = null;
+        if (this.goalMessage != null) {
+            message=ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage,"getGoal");
+
         }
-        return g;
+        return message;
     }
 
     /**
-     * @param goalMessage
+     * @param message
      */
-    public void setGoalMessage(final Message goalMessage) {
-        if (goalMessage != null) {
-            ActionLibMessagesUtils.setSubMessageFromMessage(this.goalMessage,goalMessage,"setGoal");
+    public void setGoalMessage(final Message message) {
+        if (this.goalMessage != null) {
+            ActionLibMessagesUtils.setSubMessageFromMessage(this.goalMessage,message,"setGoal");
 
         }
     }

@@ -25,10 +25,10 @@ import std_msgs.Header;
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class ActionFeedback<T_ACTION_FEEDBACK extends Message> {
+public final class ActionFeedback<T_ACTION_FEEDBACK extends Message> {
     private T_ACTION_FEEDBACK actionFeedbackMessage = null;
 
-    public ActionFeedback(T_ACTION_FEEDBACK fmsg) {
+    public ActionFeedback(final T_ACTION_FEEDBACK fmsg) {
         actionFeedbackMessage = fmsg;
     }
 
@@ -41,14 +41,14 @@ public class ActionFeedback<T_ACTION_FEEDBACK extends Message> {
         return header;
     }
 
-    public GoalStatus getGoalStatusMessage() {
+    public final GoalStatus getGoalStatusMessage() {
 
         final GoalStatus goalStatus = ActionLibMessagesUtils.getSubMessageFromMessage(actionFeedbackMessage, "getStatus");
         return goalStatus;
 
     }
 
-    public Message getFeedbackMessage() {
+    public final Message getFeedbackMessage() {
         final Message message = ActionLibMessagesUtils.getSubMessageFromMessage(actionFeedbackMessage, "getFeedback");
         return message;
    }
