@@ -9,7 +9,10 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class TestClientStateMachine {
+/**
+ * Tests state machine
+ */
+public class ClientStateMachineTest {
     private ClientStateMachine clientStateMachine;
     private static final ClientState INITIAL_CLIENT_STATE=ClientState.ERROR;
     // Executes before each test.

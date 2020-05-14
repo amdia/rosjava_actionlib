@@ -2,3 +2,10 @@ build/
 .gradle/
 *.*~
 /.nb-gradle/
+*.class
+out/test/classes/META-INF/rosjava_actionlib.main.kotlin_module
+*.svn-base
+.svn/format
+.svn/wc.db
+.svn/entries
+.svn/wc.db-journal

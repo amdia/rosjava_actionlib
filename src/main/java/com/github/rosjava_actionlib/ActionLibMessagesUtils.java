@@ -1,24 +1,42 @@
+/**
+ * Copyright 2020 Spyros Koukas
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.rosjava_actionlib;
 
 
 import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ros.internal.message.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * Created at 2019-04-19
+ * Created at 2020-04-19
  *
  * @author Spyros Koukas
  */
 final class ActionLibMessagesUtils {
-    private static final Logger logger = LoggerFactory.getLogger(ActionLibMessagesUtils.class);
+    private static final Log logger = LogFactory.getLog(ActionLibMessagesUtils.class);
     public static final String UNKNOWN_GOAL_STATUS = "UNKNOWN GOAL STATUS";
+
 
     /**
      * Return true if the goalStatus corresponds to one of the 9 known states as presented in {@link GoalStatus}
@@ -73,6 +91,25 @@ final class ActionLibMessagesUtils {
         }
     }
 
+    private static final String[] GOAL_STATUS_TO_STRING = createGoalStatus();
+
+    private static final String[] createGoalStatus() {
+        final String[] goalStatusArray = new String[10];
+        goalStatusArray[GoalStatus.PENDING] = "PENDING";
+        goalStatusArray[GoalStatus.ACTIVE] = "ACTIVE";
+        goalStatusArray[GoalStatus.PREEMPTED] = "PREEMPTED";
+        goalStatusArray[GoalStatus.SUCCEEDED] = "SUCCEEDED";
+        goalStatusArray[GoalStatus.ABORTED] = "ABORTED";
+        goalStatusArray[GoalStatus.REJECTED] = "REJECTED";
+        goalStatusArray[GoalStatus.PREEMPTING] = "PREEMPTING";
+        goalStatusArray[GoalStatus.RECALLING] = "RECALLING";
+        goalStatusArray[GoalStatus.RECALLED] = "RECALLED";
+        goalStatusArray[GoalStatus.LOST] = "LOST";
+
+
+        return goalStatusArray;
+    }
+
     /**
      * Get a textual representation of {@link GoalStatus}
      *
@@ -82,52 +119,9 @@ final class ActionLibMessagesUtils {
      */
     public static final String goalStatusToString(final byte goalStatus) {
 
-        final String stateName;
-        switch (goalStatus) {
-            case GoalStatus.PENDING:
-                stateName = "PENDING";
-                break;
-
-            case GoalStatus.ACTIVE:
-                stateName = "ACTIVE";
-                break;
-
-            case GoalStatus.PREEMPTED:
-                stateName = "PREEMPTED";
-                break;
-            case GoalStatus.SUCCEEDED:
-                stateName = "SUCCEEDED";
-                break;
-            case GoalStatus.ABORTED:
-                stateName = "ABORTED";
-                break;
-
-            case GoalStatus.REJECTED:
-                stateName = "REJECTED";
-                break;
-
-            case GoalStatus.PREEMPTING:
-                stateName = "PREEMPTING";
-                break;
-
-            case GoalStatus.RECALLING:
-                stateName = "RECALLING";
-                break;
+        final String stateName = (goalStatus >= 0 && goalStatus < GOAL_STATUS_TO_STRING.length) ? GOAL_STATUS_TO_STRING[goalStatus] : UNKNOWN_GOAL_STATUS;
 
 
-            case GoalStatus.RECALLED:
-                stateName = "RECALLED";
-                break;
-
-
-            case GoalStatus.LOST:
-                stateName = "LOST";
-                break;
-
-            default:
-                stateName = UNKNOWN_GOAL_STATUS;
-                break;
-        }
         return stateName;
     }
 
@@ -140,9 +134,9 @@ final class ActionLibMessagesUtils {
      *
      * @see actionlib_msgs.GoalID
      */
-	 @Deprecated
+    @Deprecated
     public static final GoalID getGoalId(final Message goal) {
-        return getSubMessageFromMessage(goal,"getGoalId");
+        return getSubMessageFromMessage(goal, "getGoalId");
 
     }
 

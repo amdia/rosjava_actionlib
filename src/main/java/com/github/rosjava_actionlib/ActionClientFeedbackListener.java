@@ -1,5 +1,4 @@
 /**
- * Copyright 2020 Spyros Koukas
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,16 +20,21 @@ import org.ros.internal.message.Message;
 
 
 /**
- * Listener interface to receive the incoming messages from the ActionLib server.
+ * Listener interface to receive the incoming feedback messages from the ActionLib server.
  * A client should implement this interface if it wants to receive the callbacks
  * with information from the server.
  *
+ * @author Spyros Koukas
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
+public interface ActionClientFeedbackListener<T_ACTION_FEEDBACK extends Message>   {
 
-public interface ActionClientListener<T_ACTION_FEEDBACK extends Message, T_ACTION_RESULT extends Message>
-        extends ActionClientFeedbackListener<T_ACTION_FEEDBACK>
-        , ActionClientResultListener<T_ACTION_RESULT>
-        , ActionClientStatusListener {
+    /**
+     * Called when a feedback message is received from the server.
+     *
+     * @param feedback The feedback message received from the server. The type of
+     *                 this message depends on the application.
+     */
+    void feedbackReceived(T_ACTION_FEEDBACK feedback);
 
 }

@@ -1,92 +1,56 @@
-/*
- * Copyright (C) 2014 Ernesto Corbellini
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
+plugins {
+    id 'maven-publish'
+    id 'java-library'
+    id 'idea'
+    id 'java'
+}
+group 'com.github.rosjava'
+version = '0.3.1-SNAPSHOT'
+description = 'A pure java version of actionlib'
 
 
-buildscript {
-    try{
-      apply from: "https://raw.githubusercontent.com/mojin-robotics/rosjava_bootstrap/kinetic/buildscript.gradle"
-    } catch (all) {
-      //local copy of rosjava_bootstrap buildscript.gradle
-      apply from: "buildscript.gradle"
+repositories {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven {
+            url "https://github.com/rosjava/rosjava_mvn_repo/raw/master"
+        }
     }
 }
 
-plugins {
-    id "org.sonarqube" version "2.6.2"
-}
-
-apply plugin: 'catkin'
-apply plugin: 'ros-java'
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.6'
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
-
-allprojects {
-    /*
-      A github url provides a good standard unique name for your project
-      Example below, but you may wish to switch to your own unique url.
-    */
-    group 'com.github.rosjava'
-    version = project.catkin.pkg.version
-}
 
 dependencies {
-    /* An external maven artifact dependency */
+
+    implementation group: 'org.ros.rosjava_bootstrap', name: 'message_generation', version: '0.3.3'
 
     compile 'org.ros.rosjava_core:rosjava:[0.3,0.4)'
-    compile 'org.apache.directory.studio:org.apache.commons.logging:[1.1,1.2)'
-    compile 'org.ros.rosjava_messages:actionlib_msgs:[1.11.0,1.14.0)'
-    compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.7'
-    compile 'org.apache.logging.log4j:log4j-core:2.7'
-    
+
+    compile 'org.ros.rosjava_messages:actionlib_msgs:1.12.5'
+    compile 'org.ros.rosjava_messages:actionlib:1.11.5'
+    compile 'org.ros.rosjava_messages:std_msgs:0.5.10'
+
+    implementation 'org.apache.directory.studio:org.apache.commons.logging:1.1.3'
+    implementation 'com.google.guava:guava:27.1-jre'
+
+    implementation 'org.apache.commons:commons-lang3:3.4'
+    implementation 'org.apache.commons:commons-collections4:4.1'
+    implementation 'org.apache.commons:commons-configuration2:2.3'
+
+    //During testing use the Log4j2 logging
+    testCompile 'org.apache.logging.log4j:log4j-core:2.13.1'
+    testCompile 'org.apache.logging.log4j:log4j-jcl:2.13.1'
+
     testCompile 'junit:junit:4.12'
-    testCompile 'org.ros.rosjava_messages:actionlib_tutorials:[0.1,)'
+    testCompile 'org.ros.rosjava_messages:actionlib_tutorials:0.1.10'
+    testCompile 'org.ros.rosjava_messages:turtle_actionlib:0.1.10'
 
-    /* Example of a local subproject dependency */
-    /* compile project(':sibling_gradle_project') */
-
-    
 }
+
 
 jar {
-  manifest {
-    version = project.version
-  }
+    manifest {
+        version = project.version
+    }
 }
-
-/*
-  Some useful tasks:
-
-    install: deploys jar's to MavenLocal() (i.e. ~/.m2/repository)
-    publishMavenJavaPublicationToMavenRepository : deploys jar's to devel/share/maven
-    installApp : assembles java apps in the _subproject_/build directories.
-
-  Note that these are dependent on the type of project (e.g. installApp is only valid for
-  java binary subprojects, while publishMavenJav... is only added once a subproject is included.
-  If you're using catkin_make, this is not important, since it will use the task list specified
-  in CMakeLists.txt
-*/
-defaultTasks 'publish', 'install'

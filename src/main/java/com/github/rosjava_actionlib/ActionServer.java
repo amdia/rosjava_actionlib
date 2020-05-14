@@ -1,4 +1,5 @@
 /**
+ * Copyright 2020 Spyros Koukas
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,27 +41,30 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
         T_ACTION_FEEDBACK extends Message,
         T_ACTION_RESULT extends Message> {
 
-    private class ServerGoal {
-        T_ACTION_GOAL goal;
-        ServerStateMachine state = new ServerStateMachine();
+    /**
+     *
+     */
+    private final class ServerGoal {
+        private final T_ACTION_GOAL goal;
+        private final ServerStateMachine state = new ServerStateMachine();
 
-        ServerGoal(T_ACTION_GOAL g) {
-            goal = g;
+        private ServerGoal(final T_ACTION_GOAL goal) {
+            this.goal = goal;
         }
     }
 
     private T_ACTION_GOAL actionGoal;
-    private String actionGoalType;
-    private String actionResultType;
-    private String actionFeedbackType;
-    private Subscriber<T_ACTION_GOAL> goalSuscriber = null;
-    private Subscriber<GoalID> cancelSuscriber = null;
+    private final String actionGoalType;
+    private final String actionResultType;
+    private final String actionFeedbackType;
+    private Subscriber<T_ACTION_GOAL> goalSubscriber = null;
+    private Subscriber<GoalID> cancelSubscriber = null;
 
     private Publisher<T_ACTION_RESULT> resultPublisher = null;
     private Publisher<T_ACTION_FEEDBACK> feedbackPublisher = null;
     private Publisher<GoalStatusArray> statusPublisher = null;
-    private ConnectedNode node = null;
-    private String actionName;
+    private final ConnectedNode node;
+    private final String actionName;
     private ActionServerListener callbackTarget = null;
     private Timer statusTick = new Timer();
     private HashMap<String, ServerGoal> goalTracker = new HashMap<String,
@@ -78,15 +82,18 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * @param actionResultType   String holding the type for the action result
      *                           message.
      */
-    public ActionServer(ConnectedNode node, String actionName, String actionGoalType,
-                        String actionFeedbackType, String actionResultType) {
+    public ActionServer(final ConnectedNode node
+            , final String actionName
+            , final String actionGoalType
+            , final String actionFeedbackType
+            , final String actionResultType) {
         this.node = node;
         this.actionName = actionName;
         this.actionGoalType = actionGoalType;
         this.actionFeedbackType = actionFeedbackType;
         this.actionResultType = actionResultType;
 
-        connect(node);
+        this.connect(node);
     }
 
     /**
@@ -97,8 +104,8 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * @param target An object that implements the ActionServerListener interface.
      *               This object will receive the callbacks with the events.
      */
-    public void attachListener(ActionServerListener target) {
-        callbackTarget = target;
+    public void attachListener(final ActionServerListener target) {
+        this.callbackTarget = target;
     }
 
     /**
@@ -108,8 +115,8 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @see actionlib_msgs.GoalStatusArray
      */
-    public void sendStatus(GoalStatusArray status) {
-        statusPublisher.publish(status);
+    public void sendStatus(final GoalStatusArray status) {
+        this.statusPublisher.publish(status);
     }
 
     /**
@@ -117,8 +124,8 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param feedback An action feedback message to send.
      */
-    public void sendFeedback(T_ACTION_FEEDBACK feedback) {
-        feedbackPublisher.publish(feedback);
+    public void sendFeedback(final T_ACTION_FEEDBACK feedback) {
+        this.feedbackPublisher.publish(feedback);
     }
 
     /**
@@ -126,8 +133,8 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param result The action result message to send.
      */
-    public void sendResult(T_ACTION_RESULT result) {
-        resultPublisher.publish(result);
+    public void sendResult(final T_ACTION_RESULT result) {
+        this.resultPublisher.publish(result);
     }
 
     /**
@@ -135,14 +142,14 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param node The object representing a node connected to a ROS master.
      */
-    private void publishServer(ConnectedNode node) {
-        statusPublisher = node.newPublisher(actionName + "/status", GoalStatusArray._TYPE);
-        feedbackPublisher = node.newPublisher(actionName + "/feedback", actionFeedbackType);
-        resultPublisher = node.newPublisher(actionName + "/result", actionResultType);
-        statusTick.scheduleAtFixedRate(new TimerTask() {
+    private void publishServer(final ConnectedNode node) {
+        this.statusPublisher = node.newPublisher(actionName + "/status", GoalStatusArray._TYPE);
+        this.feedbackPublisher = node.newPublisher(actionName + "/feedback", actionFeedbackType);
+        this.resultPublisher = node.newPublisher(actionName + "/result", actionResultType);
+        this.statusTick.scheduleAtFixedRate(new TimerTask() {
             @Override
-            public void run() {
-                sendStatusTick();
+            public final void run() {
+                ActionServer.this.sendStatusTick();
             }
         }, 2000, 200); //default status_frequency is 5Hz for python and cpp
     }
@@ -171,17 +178,17 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * @param node The ROS node connected to the master.
      */
     private void subscribeToClient(ConnectedNode node) {
-        goalSuscriber = node.newSubscriber(actionName + "/goal", actionGoalType);
-        cancelSuscriber = node.newSubscriber(actionName + "/cancel", GoalID._TYPE);
+        goalSubscriber = node.newSubscriber(actionName + "/goal", actionGoalType);
+        cancelSubscriber = node.newSubscriber(actionName + "/cancel", GoalID._TYPE);
 
-        goalSuscriber.addMessageListener(new MessageListener<T_ACTION_GOAL>() {
+        goalSubscriber.addMessageListener(new MessageListener<T_ACTION_GOAL>() {
             @Override
             public void onNewMessage(T_ACTION_GOAL message) {
                 gotGoal(message);
             }
         });
 
-        cancelSuscriber.addMessageListener(new MessageListener<GoalID>() {
+        cancelSubscriber.addMessageListener(new MessageListener<GoalID>() {
             @Override
             public void onNewMessage(GoalID message) {
                 gotCancel(message);
@@ -193,13 +200,13 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * Unsubscribe from the client's topics.
      */
     private void unsubscribeToClient() {
-        if (goalSuscriber != null) {
-            goalSuscriber.shutdown(5, TimeUnit.SECONDS);
-            goalSuscriber = null;
+        if (goalSubscriber != null) {
+            goalSubscriber.shutdown(5, TimeUnit.SECONDS);
+            goalSubscriber = null;
         }
-        if (cancelSuscriber != null) {
-            cancelSuscriber.shutdown(5, TimeUnit.SECONDS);
-            cancelSuscriber = null;
+        if (cancelSubscriber != null) {
+            cancelSubscriber.shutdown(5, TimeUnit.SECONDS);
+            cancelSubscriber = null;
         }
     }
 

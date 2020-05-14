@@ -1,8 +1,29 @@
 package com.github.rosjava_actionlib;
+/**
+ * Copyright 2020 Spyros Koukas
+ * Copyright 2015 Ekumen www.ekumenlabs.com
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+/**
+ * The client states
+ */
 public enum ClientState {
     ERROR(-3),
     INVALID_TRANSITION(-2),
@@ -18,31 +39,50 @@ public enum ClientState {
     LOST(8),
     UNKNOWN_STATE(99);
 
-    private final int Value;
+    private final int value;
 
     public Integer getValue() {
-        return Value;
+        return value;
     }
 
-    ClientState(int value) {
-        Value = value;
+    /**
+     * @param value
+     */
+    ClientState(final int value) {
+        this.value = value;
     }
 
     // Mapping states to state id
-    private static final Map<Integer, ClientState> _map = new HashMap<>();
+    private static final ConcurrentMap<Integer, ClientState> stateIdToClientStateMap = getMapping();
 
-    static {
-        for (ClientState state : ClientState.values())
-            _map.put(state.Value, state);
+    /**
+     * @return
+     */
+    private static final ConcurrentMap<Integer, ClientState> getMapping() {
+        return Arrays.stream(ClientState.values()).collect(Collectors.toConcurrentMap(ClientState::getValue, Function.identity()));
+    }
+
+    /**
+     * @param state
+     *
+     * @return
+     */
+    public final boolean isAmong(final ClientState... state) {
+        boolean result = false;
+        if (state != null) {
+            result = Arrays.stream(state).filter(this::equals).findAny().isPresent();
+        }
+        return result;
     }
 
     /**
      * Get state from value
      *
-     * @param value Value
+     * @param value value
+     *
      * @return state
      */
-    public static ClientState from(int value) {
-        return _map.getOrDefault(value, UNKNOWN_STATE);
+    public static ClientState from(final int value) {
+        return stateIdToClientStateMap.getOrDefault(value, UNKNOWN_STATE);
     }
 }

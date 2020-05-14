@@ -24,12 +24,11 @@ import com.github.rosjava_actionlib.ActionClientListener;
 import com.github.rosjava_actionlib.ClientState;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ros.message.Duration;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -38,23 +37,20 @@ import java.util.List;
  * Class to test the actionlib client.
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
- * @author Spryos Koukas
+ * @author Spyros Koukas
  */
 class ActionLibClientFeedback extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
-    private static final Logger logger= LoggerFactory.getLogger(ActionLibClientFeedback.class);
     static {
         // comment this line if you want logs activated
-        System.setProperty("org.apache.commons.logging.Log",
-                "org.apache.commons.logging.impl.NoOpLog");
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
     }
 
+    private static final Log logger = LogFactory.getLog(ActionLibClientFeedback.class);
 
 
     private ActionClient actionClient = null;
-    private volatile boolean resultReceived = false;
-    private volatile boolean isStarted=false;
+    private volatile boolean isStarted = false;
 
-    private Log log;
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -62,52 +58,81 @@ class ActionLibClientFeedback extends AbstractNodeMain implements ActionClientLi
     }
 
     /**
-     * Getter for isStarted
      *
      * @return isStarted
      **/
     public void waitForStart() {
-        while(!this.isStarted){
-            try{
+        while (!this.isStarted) {
+            try {
                 Thread.sleep(5);
-            }catch (final InterruptedException ie){
+            } catch (final InterruptedException ie) {
                 logger.error(ExceptionUtils.getStackTrace(ie));
-            }catch (final Exception e){
+            } catch (final Exception e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
         }
     }
 
-    public void startTasks(){
+    /**
+     *Sample method only to test client communication.
+     */
+    public void getFibonnaciBlocking(final int order) {
         Duration serverTimeout = new Duration(20);
         boolean serverStarted;
 
 
         // Attach listener for the callbacks
-        actionClient.attachListener(this);
-        logger.trace("\nWaiting for action server to start...");
+
+        logger.trace("Waiting for action server to start...");
         serverStarted = actionClient.waitForActionServerToStart(new Duration(200));
         if (serverStarted) {
             logger.trace("Action server started.\n");
         } else {
             logger.trace("No actionlib server found after waiting for " + serverTimeout.totalNsecs() / 1e9 + " seconds!");
-            System.exit(1);
+//            System.exit(1);
         }
 
         // Create Fibonacci goal message
         final FibonacciActionGoal goalMessage = (FibonacciActionGoal) actionClient.newGoalMessage();
         final FibonacciGoal fibonacciGoal = goalMessage.getGoal();
         // set Fibonacci parameter
-        fibonacciGoal.setOrder(3);
+        fibonacciGoal.setOrder(order);
         logger.trace("Sending goal...");
         actionClient.sendGoal(goalMessage);
         final GoalID gid1 = goalMessage.getGoalId();
         logger.trace("Sent goal with ID: " + gid1.getId());
         logger.trace("Waiting for goal to complete...");
+
         while (actionClient.getGoalState() != ClientState.DONE) {
             sleep(1);
         }
         logger.trace("Goal completed!\n");
+    }
+
+    /**
+     *Sample method only to test client communication.
+     */
+    public void getFibonnaciBlockingWithCancelation(final int order) {
+        Duration serverTimeout = new Duration(20);
+        boolean serverStarted;
+
+
+        // Attach listener for the callbacks
+
+        logger.trace("Waiting for action server to start...");
+        serverStarted = actionClient.waitForActionServerToStart(new Duration(200));
+        if (serverStarted) {
+            logger.trace("Action server started.\n");
+        } else {
+            logger.trace("No actionlib server found after waiting for " + serverTimeout.totalNsecs() / 1e9 + " seconds!");
+//            System.exit(1);
+        }
+
+        // Create Fibonacci goal message
+        final FibonacciActionGoal goalMessage = (FibonacciActionGoal) actionClient.newGoalMessage();
+        final FibonacciGoal fibonacciGoal = goalMessage.getGoal();
+        // set Fibonacci parameter
+        fibonacciGoal.setOrder(order);
 
         logger.trace("Sending a new goal...");
         actionClient.sendGoal(goalMessage);
@@ -118,55 +143,68 @@ class ActionLibClientFeedback extends AbstractNodeMain implements ActionClientLi
         while (actionClient.getGoalState() != ClientState.DONE) {
             sleep(1);
         }
-        logger.trace("Goal cancelled succesfully.\n");
-        logger.trace("Bye!");
+        logger.trace("Goal cancelled successfully.\n");
+
 
     }
 
     @Override
     public void onStart(ConnectedNode node) {
         actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, ActionLibServerFeedback.DEFAULT_ACTION_NAME, FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
-        log = node.getLog();
-        this.isStarted=true;
+//       Log log = node.getLog();
+        this.isStarted = true;
+        actionClient.addListener(this);
 
 //        System.exit(0);
     }
 
+    /**
+     *
+     */
     @Override
     public void resultReceived(FibonacciActionResult message) {
-        FibonacciResult result = message.getResult();
-        int[] sequence = result.getSequence();
-        int i;
+        final FibonacciResult result = message.getResult();
+        final int[] sequence = result.getSequence();
 
-        resultReceived = true;
-        System.out.print("Got Fibonacci result sequence: ");
-        for (i = 0; i < sequence.length; i++)
-            System.out.print(Integer.toString(sequence[i]) + " ");
-        logger.trace("");
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Got Fibonacci result sequence: ");
+        for (int i = 0; i < sequence.length; i++) {
+            stringBuilder.append(Integer.toString(sequence[i]));
+            stringBuilder.append("");
+        }
+
+        logger.trace(stringBuilder.toString());
     }
 
     @Override
     public void feedbackReceived(FibonacciActionFeedback message) {
-        FibonacciFeedback result = message.getFeedback();
-        int[] sequence = result.getSequence();
-        int i;
+        final FibonacciFeedback result = message.getFeedback();
+        final int[] sequence = result.getSequence();
 
-        System.out.print("Feedback from Fibonacci server: ");
-        for (i = 0; i < sequence.length; i++)
-            System.out.print(Integer.toString(sequence[i]) + " ");
-        System.out.print("\n");
+
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Got Fibonacci feedback sequence: ");
+        for (int i = 0; i < sequence.length; i++) {
+            stringBuilder.append(Integer.toString(sequence[i]));
+            stringBuilder.append("");
+        }
+        logger.trace(stringBuilder.toString());
     }
 
+    /**
+     * This is invoked periodically from the server.
+     * @param status The status message received from the server.
+     */
     @Override
-    public void statusReceived(GoalStatusArray status) {
+    public void statusReceived(final GoalStatusArray status) {
         List<GoalStatus> statusList = status.getStatusList();
         for (GoalStatus gs : statusList) {
-            log.info("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
+            logger.trace("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
         }
-        log.info("Current state of our goal: " + actionClient.getGoalState());
+        logger.trace("Goal Current state: " + actionClient.getGoalState());
     }
 
-    void sleep(long msec) {
+    private void sleep(long msec) {
         try {
             Thread.sleep(msec);
         } catch (InterruptedException ex) {

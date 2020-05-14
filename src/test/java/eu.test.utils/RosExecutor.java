@@ -16,90 +16,130 @@
 package eu.test.utils;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMain;
 import org.ros.node.NodeMainExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Objects;
 
 /**
  * Utilities to Run clients and Servers directly via java
+ * <p>
  * Created at 2019-04-02
+ * Updated at 2020-03-18
  *
  * @author Spyros Koukas
  */
 public final class RosExecutor {
-    private static final Logger logger = LoggerFactory.getLogger(RosExecutor.class);
-    private final NodeMainExecutor nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
 
+    private static final Log LOGGER = LogFactory.getLog(RosExecutor.class);
+    private NodeMainExecutor nodeMainExecutor = null;
+    private final String rosHostIp;
+
+    /**
+     * The Ip that the started node will report to ROS Master.
+     * This IP should be reachable by the ROS Master and other ROS hardware in the network
+     *
+     * @param rosHostIp
+     */
+    public RosExecutor(final String rosHostIp) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(rosHostIp));
+        this.rosHostIp = rosHostIp;
+    }
 
     /**
      * @param aNodeMain
      *
      * @author Spyros Koukas
      */
+
     public final void stopNodeMain(final NodeMain aNodeMain) {
-        logger.trace(" aNodeMain=" + aNodeMain + " nodeMainExecutor=" + nodeMainExecutor + " Shutting down node");
 
-        try {
-            if (aNodeMain != null) {
-                nodeMainExecutor.shutdownNodeMain(aNodeMain);
+        LOGGER.trace("Stopping Node. aNodeMain=" + aNodeMain + " ros host ip=" + this.rosHostIp);
+        if (aNodeMain != null) {
+            try {
+                this.getOrCreateNodeMainExecutor().shutdownNodeMain(aNodeMain);
+                LOGGER.trace("Stopped Node.  aNodeMain=" + aNodeMain + " ros host ip=" + this.rosHostIp);
+            } catch (final Exception e) {
+                LOGGER.error("Error while stopping node: "+ ExceptionUtils.getStackTrace(e));
             }
-
-            logger.trace(" aNodeMain=" + aNodeMain + " nodeMainExecutor=" + nodeMainExecutor + " Node Shutdown call completed");
-        } catch (final Exception e) {
-            logger.error(ExceptionUtils.getStackTrace(e));
         }
 
     }
 
+
+
+
     /**
-     *
      * @param nodeMain
      * @param nodeName
-     * @param thisHostIp
      * @param masterUri
+     *
      * @return
      */
-    public final NodeMain startNodeMain(final NodeMain nodeMain, final String nodeName, final String thisHostIp, final String masterUri) {
-        logger.trace("Starting nodeMain:"+nodeMain+" nodeName:"+nodeName+" thisHostIp:"+thisHostIp+" masterUri:"+masterUri);
+    public final NodeMain startNodeMain(final NodeMain nodeMain, final String nodeName, final String masterUri) {
+
         try {
-            final URI rosMasterUri = new URI(masterUri);
-            return startNodeMain(nodeMain, nodeName, thisHostIp, rosMasterUri);
+            final URI uri = new URI(masterUri);
+            startNodeMain(this.getOrCreateNodeMainExecutor(),nodeMain, nodeName, this.rosHostIp, uri);
+            return nodeMain;
         } catch (final Exception e) {
-            logger.error(ExceptionUtils.getStackTrace(e));
-            throw new RuntimeException(e);
+            LOGGER.error(ExceptionUtils.getStackTrace(e));
+            throw new IllegalArgumentException(e);
         }
+
+
+    }
+
+
+
+
+    /**
+     * @return
+     */
+    private final NodeMainExecutor getOrCreateNodeMainExecutor() {
+        if (this.nodeMainExecutor == null) {
+            this.nodeMainExecutor = DefaultNodeMainExecutor.newDefault();
+        }
+        return nodeMainExecutor;
     }
 
     /**
+     * Shutdown node main executor
+     */
+    public final void stopAllNodesAndClose() {
+        if (this.nodeMainExecutor != null) {
+            this.nodeMainExecutor.shutdown();
+        }
+        this.nodeMainExecutor = null;
+    }
+
+
+
+    /**
+     * The core method
+     *
+     * @param executor
      * @param nodeMain
      * @param nodeName
      * @param thisHostIp
      * @param masterUri
-     *
-     * @return
      */
-
-    public final NodeMain startNodeMain(final NodeMain nodeMain, final String nodeName, final String thisHostIp, final URI masterUri) {
+    private static void startNodeMain(final NodeMainExecutor executor, final NodeMain nodeMain, final String nodeName, final String thisHostIp, final URI masterUri) {
 
 
         Objects.requireNonNull(nodeMain);
+        Objects.requireNonNull(executor);
         Objects.requireNonNull(masterUri);
+        Preconditions.checkArgument(StringUtils.isNotBlank(nodeName), "nodeName should not be null or empty.");
+        Preconditions.checkArgument(StringUtils.isNotBlank(thisHostIp), "ip should not be null or empty.");
 
-        if (nodeName == null || nodeName.isEmpty()) {
-            IllegalStateException rte = new IllegalStateException("nodeName should not be null or empty.");
-            throw rte;
-        }
-        if (thisHostIp == null || thisHostIp.isEmpty()) {
-            IllegalStateException rte = new IllegalStateException("ip should not be null or empty.");
-            throw rte;
-        }
         // Load the Class
         try {
 
@@ -107,14 +147,15 @@ public final class RosExecutor {
             nodeConfiguration.setNodeName(nodeName);
             nodeConfiguration.setMasterUri(masterUri);
 
-            Preconditions.checkState(nodeMain != null);
-            nodeMainExecutor.execute(nodeMain, nodeConfiguration);
-            return nodeMain;
+            executor.execute(nodeMain, nodeConfiguration);
+
         } catch (final Exception e) {
-            RuntimeException rte = new RuntimeException("Error while trying to start node: " + nodeMain, e);
-            logger.error("Throwing:" + ExceptionUtils.getStackTrace(rte));
+            final RuntimeException rte = new RuntimeException("Error while trying to start node: " + nodeMain, e);
+            LOGGER.error("Throwing:" + ExceptionUtils.getStackTrace(rte));
             throw rte;
         }
 
     }
+
+
 }

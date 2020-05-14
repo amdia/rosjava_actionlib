@@ -1,8 +1,26 @@
+/**
+ * Copyright 2020 Spyros Koukas
+ * Copyright 2015 Ekumen www.ekumenlabs.com
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.github.rosjava_actionlib;
 
 import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import actionlib_msgs.GoalStatusArray;
+import com.google.common.base.Stopwatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ros.internal.message.Message;
@@ -12,24 +30,36 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Message, T_RESULT extends Message>
-        implements ActionFuture<T_GOAL, T_FEEDBACK, T_RESULT>, ActionClientListener<T_FEEDBACK, T_RESULT> {
-
-    final GoalID goalid;
-    final ActionClient<T_GOAL, T_FEEDBACK, T_RESULT> ac;
-    ClientGoalManager goalManager = new ClientGoalManager(new ActionGoal<T_GOAL>());
-    T_FEEDBACK latestFeedback = null;
-    T_RESULT result = null;
-
+/**
+ * @param <T_GOAL>
+ * @param <T_FEEDBACK>
+ * @param <T_RESULT>
+ */
+public final class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Message, T_RESULT extends Message>
+        implements ActionFuture<T_GOAL, T_FEEDBACK, T_RESULT>,
+        ActionClientListener<T_FEEDBACK, T_RESULT> {
     private static Log log = LogFactory.getLog(ActionClientFuture.class);
+    private final GoalID goalid;
+    private final ActionClient<T_GOAL, T_FEEDBACK, T_RESULT> actionClient;
+    private final ClientGoalManager goalManager = new ClientGoalManager(new ActionGoal<T_GOAL>());
+    private T_FEEDBACK latestFeedback = null;
+    private T_RESULT result = null;
 
-    static <T_GOAL extends Message, T_FEEDBACK extends Message, T_RESULT extends Message>
+
+    /**
+     * @param ac
+     * @param goal
+     * @param <T_GOAL>
+     * @param <T_FEEDBACK>
+     * @param <T_RESULT>
+     *
+     * @return
+     */
+    static final <T_GOAL extends Message, T_FEEDBACK extends Message, T_RESULT extends Message>
     ActionFuture<T_GOAL, T_FEEDBACK, T_RESULT>
     createFromGoal(ActionClient<T_GOAL, T_FEEDBACK, T_RESULT> ac, T_GOAL goal) {
-
-
-        GoalID goalId = ac.getGoalId(goal);
-        ActionClientFuture<T_GOAL, T_FEEDBACK, T_RESULT> ret = new ActionClientFuture<>(ac, goalId);
+        final GoalID goalId = ac.getGoalId(goal);
+        final ActionClientFuture<T_GOAL, T_FEEDBACK, T_RESULT> ret = new ActionClientFuture<>(ac, goalId);
         if (ac.isActive()) {
             log.warn("current goal STATE:" + ac.getGoalState() + "=" + ac.getGoalState().getValue());
         }
@@ -40,30 +70,48 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
 
     }
 
-    private ActionClientFuture(ActionClient<T_GOAL, T_FEEDBACK, T_RESULT> ac, GoalID id) {
-        this.ac = ac;
-        this.goalid = id;
+    /**
+     * @param actionClient
+     * @param goalID
+     */
+    private ActionClientFuture(final ActionClient<T_GOAL, T_FEEDBACK, T_RESULT> actionClient, final GoalID goalID) {
+        this.actionClient = actionClient;
+        this.goalid = goalID;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public T_FEEDBACK getLatestFeedback() {
+    public final T_FEEDBACK getLatestFeedback() {
         return latestFeedback;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public ClientState getCurrentState() {
+    public final ClientState getCurrentState() {
         return goalManager.getStateMachine().getState();
     }
 
+    /**
+     * @param bln is currently ignored
+     *
+     * @return always returns true
+     */
     @Override
-    public boolean cancel(boolean bln) {
-        ac.sendCancel(goalid);
-        goalManager.cancelGoal();
+    public final boolean cancel(final boolean bln) {
+        this.actionClient.sendCancel(this.goalid);
+        this.goalManager.cancelGoal();
         return true;
     }
 
+    /**
+     * @return
+     */
     @Override
-    public boolean isCancelled() {
+    public final boolean isCancelled() {
         if (goalManager.getStateMachine().isRunning()) {
             return result == null;
         } else {
@@ -71,13 +119,22 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
         }
     }
 
+    /**
+     * @return
+     */
     @Override
-    public boolean isDone() {
+    public final boolean isDone() {
         return !goalManager.getStateMachine().isRunning();
     }
 
+    /**
+     * @return
+     *
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     @Override
-    public T_RESULT get() throws InterruptedException, ExecutionException {
+    public final T_RESULT get() throws InterruptedException, ExecutionException {
         while (goalManager.getStateMachine().isRunning()) {
             Thread.sleep(100);
         }
@@ -86,125 +143,142 @@ public class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Messa
     }
 
     @Override
-    public T_RESULT get(long l, TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException {
-        long timeout = System.currentTimeMillis() + tu.toMillis(l);
+    public final T_RESULT get(final long timeout, final TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+
+        final Stopwatch stopwatch = Stopwatch.createStarted();
         while (goalManager.getStateMachine().isRunning()) {
-            if (timeout > System.currentTimeMillis()) {
+            if (stopwatch.elapsed(timeUnit) > timeout) {
                 throw new TimeoutException();
             }
             Thread.sleep(50);
         }
+        stopwatch.stop();
+
         disconnect();
         return result;
     }
 
+    /**
+     * @param t_result
+     */
     @Override
-    public void resultReceived(T_RESULT msg) {
-        ActionResult r = new ActionResult(msg);
-        log.fatal("got message " + r.getGoalStatusMessage().getGoalId().getId());
-        if (!r.getGoalStatusMessage().getGoalId().getId().equals(goalid.getId())) {
-            log.fatal("wrong id, waiting for " + goalid.getId());
-            return;
+    public final void resultReceived(final T_RESULT t_result) {
+        final ActionResult result = new ActionResult(t_result);
+        if (log.isDebugEnabled()) {
+            log.debug("Received result: " + result.getGoalStatusMessage().getGoalId().getId());
         }
+        if (result.getGoalStatusMessage().getGoalId().getId().equals(goalid.getId())) {
+            goalManager.updateStatus(result.getGoalStatusMessage().getStatus());
+            goalManager.resultReceived();
 
-        goalManager.updateStatus(r.getGoalStatusMessage().getStatus());
-        goalManager.resultReceived();
+            this.result = t_result;
+            disconnect();
 
-        result = msg;
-        disconnect();
-    }
-
-    @Override
-    public void feedbackReceived(T_FEEDBACK msg) {
-        ActionFeedback f = new ActionFeedback(msg);
-        if (!f.getGoalStatusMessage().getGoalId().getId().equals(goalid.getId())) {
-            return;
-        }
-
-        goalManager.updateStatus(f.getGoalStatusMessage().getStatus());
-        latestFeedback = msg;
-    }
-
-    @Override
-    public void statusReceived(GoalStatusArray status) {
-        for (GoalStatus a : status.getStatusList()) {
-            if (!goalid.getId().equals(a.getGoalId().getId())) {
-                continue;
+        } else {
+            if (log.isWarnEnabled()) {
+                log.warn("Result with Unknown id:" + result.getGoalStatusMessage().getGoalId().getId() + ", waiting for " + goalid.getId());
             }
-
-            goalManager.updateStatus(a.getStatus());
-
         }
-    }
 
-    private void disconnect() {
-        ac.detachListener(this);
+
     }
 
     @Override
-    public Future<Boolean> toBooleanFuture() {
+    public final void feedbackReceived(final T_FEEDBACK t_feedback) {
+        final ActionFeedback actionFeedback = new ActionFeedback(t_feedback);
 
+        if (actionFeedback.getGoalStatusMessage().getGoalId().getId().equals(goalid.getId())) {
+            goalManager.updateStatus(actionFeedback.getGoalStatusMessage().getStatus());
+            this.latestFeedback = t_feedback;
+        }
+
+    }
+
+    /**
+     * @param status The status message received from the server.
+     */
+    @Override
+    public final void statusReceived(final GoalStatusArray status) {
+        final String thisGoalId=this.goalid.getId();
+        status.getStatusList().stream()
+                .filter(goalStatus -> thisGoalId.equals(goalStatus.getGoalId().getId()))
+                .map(GoalStatus::getStatus)
+                .forEach(this.goalManager::updateStatus);
+    }
+
+    /**
+     *
+     */
+    private final void disconnect() {
+        this.actionClient.detachListener(this);
+    }
+
+    @Override
+    public final Future<Boolean> toBooleanFuture() {
         final ActionClientFuture<T_GOAL, T_FEEDBACK, T_RESULT> self = this;
-
-        return new Future<Boolean>() {
+        return new Future<>() {
             @Override
-            public boolean cancel(boolean bln) {
+            public final boolean cancel(boolean bln) {
+
                 return self.cancel(bln);
             }
 
             @Override
-            public boolean isCancelled() {
+            public final boolean isCancelled() {
                 return self.isCancelled();
             }
 
             @Override
-            public boolean isDone() {
+            public final boolean isDone() {
                 return self.isDone();
             }
 
             @Override
-            public Boolean get() throws InterruptedException, ExecutionException {
+            public final Boolean get() throws InterruptedException, ExecutionException {
                 return self.get() != null;
             }
 
             @Override
-            public Boolean get(long l, TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException {
-                return this.get(l, tu) != null;
+            public final Boolean get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+                return this.get(timeout, timeUnit) != null;
             }
         };
 
     }
 
+    /**
+     * @return
+     */
     @Override
-    public Future<Void> toVoidFuture() {
+    public final Future<Void> toVoidFuture() {
 
         final ActionClientFuture<T_GOAL, T_FEEDBACK, T_RESULT> self = this;
 
-        return new Future<Void>() {
+        return new Future<>() {
             @Override
-            public boolean cancel(boolean bln) {
+            public final boolean cancel(boolean bln) {
                 return self.cancel(bln);
             }
 
             @Override
-            public boolean isCancelled() {
+            public final boolean isCancelled() {
                 return self.isCancelled();
             }
 
             @Override
-            public boolean isDone() {
+            public final boolean isDone() {
                 return self.isDone();
             }
 
             @Override
-            public Void get() throws InterruptedException, ExecutionException {
+            public final Void get() throws InterruptedException, ExecutionException {
                 self.get();
                 return null;
             }
 
             @Override
-            public Void get(long l, TimeUnit tu) throws InterruptedException, ExecutionException, TimeoutException {
-                self.get(l, tu);
+            public final Void get(final long timeout, final TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+                self.get(timeout, timeUnit);
                 return null;
             }
         };

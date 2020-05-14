@@ -1,4 +1,5 @@
 /**
+ * Copyright 2020 Spyros Koukas
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,58 +47,59 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     }
 
     /**
-     *
-     * @param ag
+     * @param actionGoal
      */
-    public ClientGoalManager(ActionGoal<T_ACTION_GOAL> ag) {
-        actionGoal = ag;
-        stateMachine = new ClientStateMachine(ClientState.ERROR);
+    public ClientGoalManager(ActionGoal<T_ACTION_GOAL> actionGoal) {
+        this.actionGoal = actionGoal;
+        this.stateMachine = new ClientStateMachine(ClientState.ERROR);
     }
 
     /**
-     *
-     * @param ag
+     * @param actionGoal
      */
-    public void setGoal(ActionGoal<T_ACTION_GOAL> ag) {
-        this.actionGoal = ag;
-        if (stateMachine != null && stateMachine.isRunning()) stateMachine.setState(ClientState.ERROR);
-        stateMachine.resetToState(ClientState.WAITING_FOR_GOAL_ACK);
+    public void setGoal(final ActionGoal<T_ACTION_GOAL> actionGoal) {
+        this.actionGoal = actionGoal;
+        if (this.stateMachine.isRunning()) {
+            this.stateMachine.setState(ClientState.ERROR);
+        }
+        this.stateMachine.resetToState(ClientState.WAITING_FOR_GOAL_ACK);
     }
 
-    public void setGoal(T_ACTION_GOAL agm) {
-        ActionGoal<T_ACTION_GOAL> ag = new ActionGoal();
-        ag.setActionGoalMessage(agm);
-        setGoal(ag);
+    /**
+     * @param actionGoal
+     */
+    public final void setGoal(final T_ACTION_GOAL actionGoal) {
+        final ActionGoal<T_ACTION_GOAL> actionGoalWrapper = new ActionGoal();
+        actionGoalWrapper.setActionGoalMessage(actionGoal);
+        this.setGoal(actionGoalWrapper);
     }
 
-    public boolean cancelGoal() {
-        return stateMachine.cancel();
+    /**
+     * @return
+     */
+    public final boolean cancelGoal() {
+        return this.stateMachine.cancel();
     }
 
     /**
      * Signal that the result has been received.
      */
-    public void resultReceived() {
-        stateMachine.resultReceived();
+    public final void resultReceived() {
+        this.stateMachine.resultReceived();
     }
 
-    public void updateStatus(int status) {
-        stateMachine.transition(status);
+    /**
+     * @param status
+     */
+    public final void updateStatus(int status) {
+        this.stateMachine.transition(status);
     }
 
-    public int getGoalStateInteger() {
-        int ret = -666;
-        if (stateMachine != null) {
-            ret = stateMachine.getState().getValue();
-        }
-        return ret;
-    }
 
-    public ClientState getGoalState() {
-        ClientState ret = ClientState.UNKNOWN_STATE;
-        if (stateMachine != null) {
-            ret = stateMachine.getState();
-        }
-        return ret;
+    /**
+     * @return
+     */
+    public final ClientState getGoalState() {
+        return this.stateMachine.getState();
     }
 }

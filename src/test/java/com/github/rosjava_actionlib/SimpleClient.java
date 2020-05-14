@@ -1,4 +1,4 @@
-package com.github.rosjava_actionlib; /**
+/**
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,8 @@ package com.github.rosjava_actionlib; /**
  * limitations under the License.
  */
 
+package com.github.rosjava_actionlib;
+
 
 import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
@@ -21,32 +23,31 @@ import actionlib_msgs.GoalStatusArray;
 import actionlib_tutorials.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.ros.message.Duration;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 
 /**
  * Class to test the actionlib client.
+ *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
- * @author Spryos Koukas
+ * @author Spyros Koukas
  */
-public class TestClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
-    private static Logger logger = LoggerFactory.getLogger(TestClient.class);
+class SimpleClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
     static {
         // comment this line if you want logs activated
-        System.setProperty("org.apache.commons.logging.Log",
-                "org.apache.commons.logging.impl.NoOpLog");
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
     }
+    private static Log logger = LogFactory.getLog(SimpleClient.class);
 
     private ActionClient actionClient = null;
     private volatile boolean resultReceived = false;
-    private volatile boolean isStarted= false;
+    private volatile boolean isStarted = false;
     private Log log;
 
     @Override
@@ -55,23 +56,24 @@ public class TestClient extends AbstractNodeMain implements ActionClientListener
     }
 
 
-/**
+    /**
      * Getter for isStarted
      *
      * @return isStarted
      **/
     public void waitForStart() {
-        while(!this.isStarted){
-            try{
+        while (!this.isStarted) {
+            try {
                 Thread.sleep(5);
-            }catch (final InterruptedException ie){
+            } catch (final InterruptedException ie) {
                 logger.error(ExceptionUtils.getStackTrace(ie));
-            }catch (final Exception e){
+            } catch (final Exception e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
         }
     }
- public void startTasks(){
+
+    public void startTasks() {
         Duration serverTimeout = new Duration(20);
         boolean serverStarted;
 
@@ -119,9 +121,9 @@ public class TestClient extends AbstractNodeMain implements ActionClientListener
 
     @Override
     public void onStart(ConnectedNode node) {
-         actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, "/fibonacci", FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
+        actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, "/fibonacci", FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
         log = node.getLog();
-        this.isStarted=true;
+        this.isStarted = true;
 
 //        System.exit(0);
     }

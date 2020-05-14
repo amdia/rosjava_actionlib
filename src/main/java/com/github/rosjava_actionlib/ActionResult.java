@@ -1,4 +1,5 @@
 /**
+ * Copyright 2020 Spyros Koukas
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,7 @@ import std_msgs.Header;
 public final class ActionResult<T_ACTION_RESULT extends Message> {
     private T_ACTION_RESULT actionResultMessage = null;
 
-    public ActionResult(T_ACTION_RESULT msg) {
+    public ActionResult(final T_ACTION_RESULT msg) {
         actionResultMessage = msg;
     }
 

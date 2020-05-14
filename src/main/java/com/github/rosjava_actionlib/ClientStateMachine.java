@@ -1,4 +1,5 @@
 /**
+ * Copyright 2020 Spyros Koukas
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,12 +29,13 @@ import java.util.stream.Collectors;
  * State machine for the action client.
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
+ * @author Spyros Koukas
  */
 final class ClientStateMachine {
 
 
     private ClientState latestGoalStatus = null;
-    private ClientState state;
+    private ClientState state = ClientState.UNKNOWN_STATE;
     private final Log log = LogFactory.getLog(ActionClient.class);
 
     /**
@@ -51,7 +53,7 @@ final class ClientStateMachine {
      *
      * @param initialState
      */
-    final void resetToState(final ClientState initialState) {
+    final synchronized void resetToState(final ClientState initialState) {
         Objects.requireNonNull(initialState);
         this.state = initialState;
         this.latestGoalStatus = null;
@@ -72,17 +74,6 @@ final class ClientStateMachine {
     }
 
     /**
-     * @deprecated enforce Enum usage
-     * Update the state of the client based on the current state and the goal state.
-     */
-    @Deprecated
-    final synchronized void updateStatus(int status) {
-        if (this.state != ClientState.DONE) {
-            this.latestGoalStatus = ClientState.from(status);
-        }
-    }
-
-    /**
      * Update the state of the client based on the current state and the goal state.
      *
      * @param status
@@ -98,15 +89,13 @@ final class ClientStateMachine {
      *
      * @param goalStatus Status of the goal.
      */
-    final synchronized void transition(int goalStatus) {
-        List<ClientState> nextStates;
-        Iterator<ClientState> iterStates;
+    final synchronized void transition(final int goalStatus) {
 
         // transition to next states
-        nextStates = getTransition(goalStatus);
-        iterStates = nextStates.iterator();
+        final List<ClientState> nextStates = getTransition(goalStatus);
+        final Iterator<ClientState> iterStates = nextStates.iterator();
 
-        log.info("ClientStateMachine - State transition invoked.");
+        log.trace("State transition invoked. GoalStatus:" + goalStatus);
 
         while (iterStates.hasNext()) {
             this.state = iterStates.next();
@@ -416,12 +405,16 @@ final class ClientStateMachine {
      * @return True if the goal can be cancelled, false otherwise.
      */
     final boolean cancel() {
-        ArrayList<ClientState> cancellableStates = new ArrayList<>(Arrays.asList(ClientState.WAITING_FOR_GOAL_ACK,
-                ClientState.PENDING, ClientState.ACTIVE));
-        boolean shouldCancel = cancellableStates.contains(state);
+        final ArrayList<ClientState> cancellableStates =
+                new ArrayList<>(
+                        Arrays.asList(ClientState.WAITING_FOR_GOAL_ACK
+                                , ClientState.PENDING,
+                                ClientState.ACTIVE)
+                );
+        final boolean shouldCancel = cancellableStates.contains(state);
 
         if (shouldCancel) {
-            state = ClientState.WAITING_FOR_CANCEL_ACK;
+            this.state = ClientState.WAITING_FOR_CANCEL_ACK;
         }
         return shouldCancel;
     }

@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 202 Spyros Koukas, spyroskoukas(at)hotmail.com
  * Copyright (C) 2015 Ernesto Corbellini, ecorbellini@ekumenlabs.com
  * Copyright (C) 2011 Alexander Perzylo, Technische Universität München
  *
@@ -27,9 +28,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * The GoalIDGenerator may be used to create unique GoalIDs.
  * <p>
  * <p>
- * The node's nodeName will be used and the time on the node.
+ * The node's nodeName will be used and the time on the node .
  *
  * @author Alexander C. Perzylo, perzylo@cs.tum.edu
+ * @author Spyros Koukas
  */
 final class GoalIDGenerator {
     /**
@@ -42,6 +44,8 @@ final class GoalIDGenerator {
      * qualified connectedNode nodeName.
      */
     private final ConnectedNode connectedNode;
+    private final String nodeNamePlusSeparator;
+    private static final String separator = "-";
 
 
     /**
@@ -51,9 +55,10 @@ final class GoalIDGenerator {
      * @param connectedNode The connectedNode used to generate IDs. The connectedNode's full nodeName should be
      *                      unique in the system.
      */
-    GoalIDGenerator(ConnectedNode connectedNode) {
+    GoalIDGenerator(final ConnectedNode connectedNode) {
         this.connectedNode = connectedNode;
 
+        this.nodeNamePlusSeparator = connectedNode.getName().toString() + separator;
     }
 
     /**
@@ -63,11 +68,11 @@ final class GoalIDGenerator {
      * @return GoalID object
      */
     final String generateID(final GoalID goalId) {
-        final Time t = connectedNode.getCurrentTime();
-        final String id = connectedNode.getName().toString() + "-" + goalCount.incrementAndGet() + "-" + t.secs + "." + t.nsecs;
+        final Time currentTime = connectedNode.getCurrentTime();
+        final String id = this.nodeNamePlusSeparator + goalCount.incrementAndGet() + separator + currentTime.secs + "." + currentTime.nsecs;
 
         goalId.setId(id);
-        goalId.setStamp(t);
+        goalId.setStamp(currentTime);
 
         return id;
     }

@@ -24,6 +24,7 @@ rootProject.buildscript {
     String rosMavenPath = System.getenv("ROS_MAVEN_PATH")
     String rosMavenRepository = System.getenv("ROS_MAVEN_REPOSITORY")
     repositories {
+        mavenLocal()
         if (rosMavenPath != null) {
             rosMavenPath.tokenize(":").each { path ->
                 maven {
@@ -36,6 +37,7 @@ rootProject.buildscript {
         maven {
             url "http://repository.springsource.com/maven/bundles/release"
         }
+
         maven {
             url "http://repository.springsource.com/maven/bundles/external"
         }
@@ -47,9 +49,10 @@ rootProject.buildscript {
         maven {
             url "https://github.com/rosjava/rosjava_mvn_repo/raw/master"
         }
+        mavenCentral()
         jcenter()
     }
     dependencies {
-        classpath "org.ros.rosjava_bootstrap:gradle_plugins:[0.3,0.4)"
+        classpath "org.ros.rosjava_bootstrap:gradle_plugins:[0.3.3,0.4)"
     }
 }

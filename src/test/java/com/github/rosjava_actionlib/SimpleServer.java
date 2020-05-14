@@ -1,4 +1,6 @@
-package com.github.rosjava_actionlib; /**
+package com.github.rosjava_actionlib;
+
+/**
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,18 +22,18 @@ import actionlib_tutorials.FibonacciActionFeedback;
 import actionlib_tutorials.FibonacciActionGoal;
 import actionlib_tutorials.FibonacciActionResult;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Class to test the actionlib server.
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class TestServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
-    private static final Logger logger= LoggerFactory.getLogger(TestClient.class);
+class SimpleServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
+    private static final Logger logger= LogManager.getLogger(SimpleClient.class);
     private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> as = null;
     private volatile FibonacciActionGoal currentGoal = null;
     private volatile boolean isStarted=false;
@@ -103,7 +105,7 @@ public class TestServer extends AbstractNodeMain implements ActionServerListener
         }
     }
 
-    private int[] fibonacciSequence(int order) {
+    private static final int[] fibonacciSequence(int order) {
         int i;
         int[] fib = new int[order + 2];
 
