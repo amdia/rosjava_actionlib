@@ -17,6 +17,7 @@
 		<Logger name="org.apache" level="TRACE" />
 		<Logger name="org.ros" level="TRACE" />
 		<Logger name="org.apache.http.impl.conn.Wire" level="TRACE"/>
+
 		<Logger name="httpclient.wire.header" level="ERROR"/>
 		<Logger name="httpclient.wire.content" level="ERROR"/>
 		<Logger name="com.github.rosjava_actionlib" level="DEBUG"/>
@@ -24,6 +25,8 @@
 		<Logger name="com.github.rosjava_actionlib.ClientStateMachine" level="DEBUG"/>
 		<Logger name="org.apache.commons.httpclient" level="ERROR"/>
 		<Logger name="org.apache.commons.httpclient.Wire" level="ERROR"/>
+
+
 
 	</Loggers>
 </Configuration>

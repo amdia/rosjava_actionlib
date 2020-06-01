@@ -7,7 +7,7 @@ plugins {
 group 'com.github.rosjava'
 version = '0.3.1-SNAPSHOT'
 description = 'A pure java version of actionlib'
-
+sourceCompatibility = 11
 
 repositories {
     repositories {

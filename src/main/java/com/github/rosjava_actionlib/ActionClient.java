@@ -20,7 +20,9 @@ package com.github.rosjava_actionlib;
 import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import actionlib_msgs.GoalStatusArray;
+import com.google.common.base.Stopwatch;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ros.internal.message.Message;
@@ -52,18 +54,19 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
         T_ACTION_FEEDBACK extends Message,
         T_ACTION_RESULT extends Message> extends DefaultSubscriberListener {
 
-    private static final Log logger = LogFactory.getLog(ActionClient.class);
+    private static final Log LOGGER = LogFactory.getLog(ActionClient.class);
     private ClientGoalManager<T_ACTION_GOAL> goalManager;
     private String actionGoalType;
     private String actionResultType;
     private String actionFeedbackType;
     private Publisher<T_ACTION_GOAL> goalPublisher = null;
     private Publisher<GoalID> cancelPublisher = null;
-    private Subscriber<T_ACTION_RESULT> serverResult = null;
-    private Subscriber<T_ACTION_FEEDBACK> serverFeedback = null;
-    private Subscriber<GoalStatusArray> serverStatus = null;
+    private Subscriber<T_ACTION_RESULT> serverResultSubscriber = null;
+    private Subscriber<T_ACTION_FEEDBACK> serverFeedbackSubscriber = null;
+    private Subscriber<GoalStatusArray> serverStatusSubscriber = null;
     private ConnectedNode node = null;
     private String actionName;
+    private static final boolean LATCH_MODE=true;
     //    private final List<ActionClientListener<T_ACTION_FEEDBACK,T_ACTION_RESULT>> callbackTargets = new CopyOnWriteArrayList<>();
     private final List<ActionClientResultListener<T_ACTION_RESULT>> callbackResultTargets = new CopyOnWriteArrayList<>();
     private final List<ActionClientFeedbackListener<T_ACTION_FEEDBACK>> callbackFeedbackTargets = new CopyOnWriteArrayList<>();
@@ -129,27 +132,28 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param target
      */
     public final void addListener(final ActionClientStatusListener target) {
-        callbackStatusTargets.add(target);
+
+        this.callbackStatusTargets.add(target);
     }
 
     /**
      * @param target
      */
     public final void addListener(final ActionClientFeedbackListener target) {
-        callbackFeedbackTargets.add(target);
+        this.callbackFeedbackTargets.add(target);
     }
 
     /**
      * @param target
      */
     public final void addListener(final ActionClientResultListener target) {
-        callbackResultTargets.add(target);
+        this.callbackResultTargets.add(target);
     }
 
     /**
      * @param target
      *
-     * @deprecated better use {@link ActionClient#addListener(ActionClientListener)} that clearly shows that multiple
+     * @deprecated better use {@link ActionClient#addListener(ActionClientListener)} that clearly shows seperaton between different listeners type
      * listeners can be added.
      */
     @Deprecated
@@ -180,7 +184,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
     public final ActionFuture<T_ACTION_GOAL, T_ACTION_FEEDBACK, T_ACTION_RESULT> sendGoal(final T_ACTION_GOAL agMessage, final String id) {
         final GoalID gid = getGoalId(agMessage);
         if (StringUtils.isBlank(id)) {
-            goalIdGenerator.generateID(gid);
+            this.goalIdGenerator.generateID(gid);
         } else {
             gid.setId(id);
         }
@@ -188,9 +192,12 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
         return ActionClientFuture.createFromGoal(this, agMessage);
     }
 
+    /**
+     * @param agMessage
+     */
     void sendGoalWire(final T_ACTION_GOAL agMessage) {
-        goalManager.setGoal(agMessage);
-        goalPublisher.publish(agMessage);
+        this.goalManager.setGoal(agMessage);
+        this.goalPublisher.publish(agMessage);
     }
 
     /**
@@ -239,8 +246,8 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @see actionlib_msgs.GoalID
      */
     public void sendCancel(final GoalID id) {
-        goalManager.cancelGoal();
-        cancelPublisher.publish(id);
+        this.goalManager.cancelGoal();
+        this.cancelPublisher.publish(id);
     }
 
     /**
@@ -250,7 +257,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      */
     private final void publishClient(final ConnectedNode node) {
         this.goalPublisher = this.node.newPublisher(actionName + "/goal", actionGoalType);
-        this.goalPublisher.setLatchMode(false);
+        this.goalPublisher.setLatchMode(LATCH_MODE);
         this.cancelPublisher = this.node.newPublisher(actionName + "/cancel", GoalID._TYPE);
     }
 
@@ -258,13 +265,13 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * Stop publishing our client topics.
      */
     private void unpublishClient() {
-        if (goalPublisher != null) {
-            goalPublisher.shutdown(5, TimeUnit.SECONDS);
-            goalPublisher = null;
+        if (this.goalPublisher != null) {
+            this.goalPublisher.shutdown(5, TimeUnit.SECONDS);
+            this.goalPublisher = null;
         }
-        if (cancelPublisher != null) {
-            cancelPublisher.shutdown(5, TimeUnit.SECONDS);
-            cancelPublisher = null;
+        if (this.cancelPublisher != null) {
+            this.cancelPublisher.shutdown(5, TimeUnit.SECONDS);
+            this.cancelPublisher = null;
         }
     }
 
@@ -278,51 +285,36 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param node The node object that is connected to the ROS master.
      */
     private final void subscribeToServer(final ConnectedNode node) {
-        this.serverResult = node.newSubscriber(actionName + "/result", actionResultType);
-        this.serverFeedback = node.newSubscriber(actionName + "/feedback", actionFeedbackType);
-        this.serverStatus = node.newSubscriber(actionName + "/status", GoalStatusArray._TYPE);
+        this.serverResultSubscriber = node.newSubscriber(actionName + "/result", actionResultType);
+        this.serverFeedbackSubscriber = node.newSubscriber(actionName + "/feedback", actionFeedbackType);
+        this.serverStatusSubscriber = node.newSubscriber(actionName + "/status", GoalStatusArray._TYPE);
 
-        this.serverFeedback.addSubscriberListener(this);
-        this.serverResult.addSubscriberListener(this);
+        this.serverFeedbackSubscriber.addSubscriberListener(this);
+        this.serverResultSubscriber.addSubscriberListener(this);
 
-        this.serverFeedback.addMessageListener(new MessageListener<T_ACTION_FEEDBACK>() {
-            @Override
-            public void onNewMessage(T_ACTION_FEEDBACK message) {
-                gotFeedback(message);
-            }
-        });
-
-        serverResult.addMessageListener(new MessageListener<T_ACTION_RESULT>() {
-            @Override
-            public void onNewMessage(T_ACTION_RESULT message) {
-
-                gotResult(message);
-            }
-        });
-
-        serverStatus.addMessageListener(new MessageListener<GoalStatusArray>() {
-            @Override
-            public void onNewMessage(final GoalStatusArray message) {
-                gotStatus(message);
-            }
-        });
+        this.serverResultSubscriber.addMessageListener(message -> gotResult(message));
+        this.serverFeedbackSubscriber.addMessageListener(message -> gotFeedback(message));
+        this.serverStatusSubscriber.addMessageListener(message -> gotStatus(message));
     }
 
     /**
      * Unsubscribe from the server topics.
      */
     private void unsubscribeToServer() {
-        if (serverFeedback != null) {
-            serverFeedback.shutdown(5, TimeUnit.SECONDS);
-            serverFeedback = null;
+        if (this.serverFeedbackSubscriber != null) {
+            this.serverFeedbackSubscriber.removeAllMessageListeners();
+            this.serverFeedbackSubscriber.shutdown(5, TimeUnit.SECONDS);
+            this.serverFeedbackSubscriber = null;
         }
-        if (serverResult != null) {
-            serverResult.shutdown(5, TimeUnit.SECONDS);
-            serverResult = null;
+        if (this.serverResultSubscriber != null) {
+            this.serverResultSubscriber.removeAllMessageListeners();
+            this.serverResultSubscriber.shutdown(5, TimeUnit.SECONDS);
+            this.serverResultSubscriber = null;
         }
-        if (serverStatus != null) {
-            serverStatus.shutdown(5, TimeUnit.SECONDS);
-            serverStatus = null;
+        if (this.serverStatusSubscriber != null) {
+            this.serverStatusSubscriber.removeAllMessageListeners();
+            this.serverStatusSubscriber.shutdown(5, TimeUnit.SECONDS);
+            this.serverStatusSubscriber = null;
         }
     }
 
@@ -352,7 +344,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param message The feedback message received. The type of this message
      *                depends on the application.
      */
-    public void gotFeedback(T_ACTION_FEEDBACK message) {
+    public void gotFeedback(final T_ACTION_FEEDBACK message) {
         ActionFeedback<T_ACTION_FEEDBACK> af = new ActionFeedback(message);
         if (af.getGoalStatusMessage().getGoalId().getId().equals(goalManager.getActionGoal().getGoalId())) {
             goalManager.updateStatus(af.getGoalStatusMessage().getStatus());
@@ -372,22 +364,29 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      *
      * @see actionlib_msgs.GoalStatusArray
      */
-    public void gotStatus(GoalStatusArray message) {
-        statusReceivedFlag = true;
+    public void gotStatus(final GoalStatusArray message) {
+        //can only be set
+        if (!this.statusReceivedFlag) {
+            this.statusReceivedFlag = true;
+        }
         // Find the status for our current goal
-        GoalStatus gstat = findStatus(message);
-        if (gstat != null) {
+        final GoalStatus goalStatus = this.findStatus(message);
+        if (goalStatus != null) {
             // update the goal status tracking
-            goalManager.updateStatus(gstat.getStatus());
+            this.goalManager.updateStatus(goalStatus.getStatus());
         } else {
-            logger.info("Status update is not for our goal!");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Status update is not for current goal!");
+            }
         }
         // Propagate the callback
-        for (final ActionClientStatusListener actionClientListener : callbackStatusTargets) {
+
+        for (final ActionClientStatusListener actionClientListener : this.callbackStatusTargets) {
             if (actionClientListener != null) {
                 actionClientListener.statusReceived(message);
             }
         }
+
     }
 
     /**
@@ -400,18 +399,21 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @return The goal status message for the goal we want or null if we didn't
      * find it.
      */
-    public final GoalStatus findStatus(GoalStatusArray statusMessage) {
+    public final GoalStatus findStatus(final GoalStatusArray statusMessage) {
 
         final List<GoalStatus> statusList = statusMessage.getStatusList();
-        final String idToFind = goalManager.getActionGoal().getGoalId();
-        final List<GoalStatus> goalStatuses = statusList.stream().filter(goalStatus -> goalStatus.getGoalId().getId().equals(idToFind)).collect(Collectors.toList());
-        final int goalStatusesSize = goalStatuses.size();
-        if (logger.isDebugEnabled() && (goalStatusesSize > 1 || goalStatusesSize == 0)) {
-            logger.debug("Found [" + goalStatuses.size() + "] goals with ID: " + idToFind);
+        final String idToFind = this.goalManager.getActionGoal().getGoalId();
+        GoalStatus goalStatus = null;
+        if (idToFind != null) {
+            final List<GoalStatus> goalStatuses = statusList.stream().filter(goalStatusParam -> goalStatusParam.getGoalId().getId().equals(idToFind)).collect(Collectors.toList());
+            final int goalStatusesSize = goalStatuses.size();
+            if (LOGGER.isDebugEnabled() && (goalStatusesSize > 1 || goalStatusesSize == 0)) {
+                LOGGER.debug("Found [" + goalStatuses.size() + "] goals with ID: " + idToFind);
 
+            }
+            goalStatus = goalStatuses.stream().findAny().orElse(null);
         }
-        final GoalStatus gstat = goalStatuses.stream().findAny().orElse(null);
-        return gstat;
+        return goalStatus;
     }
 
     /**
@@ -435,25 +437,40 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * false otherwise.
      */
     public boolean waitForActionServerToStart(final Duration timeout) {
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+        final long durationInNanos = Math.max(0, timeout.totalNsecs());
         boolean result = false;
-        boolean gotTime = true;
-        final Time finalTime = node.getCurrentTime().add(timeout);
         long tests = 0;
-        while (!result && gotTime) {
+        while (!result && stopwatch.elapsed(TimeUnit.NANOSECONDS) <= durationInNanos) {
             tests++;
-            result = goalPublisher.hasSubscribers() &&
-                    cancelPublisher.hasSubscribers() &&
-                    feedbackPublisherFlag &&
-                    resultPublisherFlag &&
-                    statusReceivedFlag;
-            if (timeout.isPositive()) {
-                gotTime = (node.getCurrentTime().compareTo(finalTime) < 0);
+            result =
+                    this.goalPublisher.hasSubscribers()
+                            && this.cancelPublisher.hasSubscribers()
+                            && this.feedbackPublisherFlag
+                            && this.resultPublisherFlag
+                            && this.statusReceivedFlag;
+
+            try {
+                Thread.sleep(5);
+
+            } catch (final Exception e) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(ExceptionUtils.getStackTrace(e));
+                }
             }
+
         }
-        if (!result && logger.isDebugEnabled()) {
-            logger.debug(" [Server Started:" + result + "] [tests:" + tests + "] Goal Topic:[" + this.actionName + "/goal] CancelTopic[" + actionName + "/cancel] timeout:[" + timeout + "]");
+        if (!result && LOGGER.isDebugEnabled()) {
+            LOGGER.debug(" [Server Started:" + result + "] [tests:" + tests + "] Goal Topic:[" + this.actionName + "/goal] CancelTopic[" + actionName + "/cancel] timeout:[" + timeout + "]");
         }
         return result;
+    }
+
+    /**
+     * TODO this probably should be removed. It is not a good practice to override finalize.
+     */
+    protected final void finalize() {
+        this.disconnect();
     }
 
     /**
@@ -464,15 +481,19 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
     }
 
     @Override
-    public final void onNewPublisher(Subscriber subscriber, PublisherIdentifier publisherIdentifier) {
+    public final void onNewPublisher(final Subscriber subscriber, final PublisherIdentifier publisherIdentifier) {
         //public void onNewFeedbackPublisher(Subscriber<T_ACTION_FEEDBACK> subscriber, PublisherIdentifier publisherIdentifier) {
-        if (subscriber.equals(serverFeedback)) {
-            feedbackPublisherFlag = true;
-            logger.info("Found server publishing on the " + actionName + "/feedback topic.");
+        if (subscriber.equals(this.serverFeedbackSubscriber)) {
+            this.feedbackPublisherFlag = true;
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Found server publishing on the " + this.actionName + "/feedback topic.");
+            }
         } else {
-            if (subscriber.equals(serverResult)) {
-                resultPublisherFlag = true;
-                logger.info("Found server publishing on the " + actionName + "/result topic.");
+            if (subscriber.equals(this.serverResultSubscriber)) {
+                this.resultPublisherFlag = true;
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Found server publishing on the " + this.actionName + "/result topic.");
+                }
             }
         }
     }
@@ -490,23 +511,15 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
     }
 
     /**
-     * Finish the action client. Unregister publishers and listeners.
+     * Disconnect the action client. Unregister publishers and listeners.
      */
-    public final void finish() {
-        callbackResultTargets.clear();
-        callbackFeedbackTargets.clear();
-        callbackStatusTargets.clear();
+    public final void disconnect() {
+        this.callbackResultTargets.clear();
+        this.callbackFeedbackTargets.clear();
+        this.callbackStatusTargets.clear();
         unpublishClient();
         unsubscribeToServer();
     }
-
-    /**
-     * TODO this probably should be removed. It is not a good practice to override finalize.
-     */
-    protected void finalize() {
-        finish();
-    }
-
 
 
     @Override

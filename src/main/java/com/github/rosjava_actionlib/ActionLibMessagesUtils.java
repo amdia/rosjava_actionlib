@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.ros.internal.message.Message;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
