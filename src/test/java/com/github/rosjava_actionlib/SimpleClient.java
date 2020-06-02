@@ -43,12 +43,13 @@ class SimpleClient extends AbstractNodeMain implements ActionClientListener<Fibo
         // comment this line if you want logs activated
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
     }
-    private static Log logger = LogFactory.getLog(SimpleClient.class);
+
+    private static Log LOGGER = LogFactory.getLog(SimpleClient.class);
 
     private ActionClient actionClient = null;
     private volatile boolean resultReceived = false;
     private volatile boolean isStarted = false;
-    private Log log;
+
 
     @Override
     public GraphName getDefaultNodeName() {
@@ -66,9 +67,9 @@ class SimpleClient extends AbstractNodeMain implements ActionClientListener<Fibo
             try {
                 Thread.sleep(5);
             } catch (final InterruptedException ie) {
-                logger.error(ExceptionUtils.getStackTrace(ie));
+                LOGGER.error(ExceptionUtils.getStackTrace(ie));
             } catch (final Exception e) {
-                logger.error(ExceptionUtils.getStackTrace(e));
+                LOGGER.error(ExceptionUtils.getStackTrace(e));
             }
         }
     }
@@ -122,7 +123,7 @@ class SimpleClient extends AbstractNodeMain implements ActionClientListener<Fibo
     @Override
     public void onStart(ConnectedNode node) {
         actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, "/fibonacci", FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
-        log = node.getLog();
+
         this.isStarted = true;
 
 //        System.exit(0);
@@ -154,15 +155,21 @@ class SimpleClient extends AbstractNodeMain implements ActionClientListener<Fibo
     }
 
     @Override
-    public void statusReceived(GoalStatusArray status) {
-        List<GoalStatus> statusList = status.getStatusList();
-        for (GoalStatus gs : statusList) {
-            log.info("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
+    public void statusReceived(final GoalStatusArray status) {
+        if(LOGGER.isInfoEnabled()) {
+            List<GoalStatus> statusList = status.getStatusList();
+            for (GoalStatus gs : statusList) {
+                LOGGER.info("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
+            }
+            LOGGER.info("Current state of our goal: " + actionClient.getGoalState());
         }
-        log.info("Current state of our goal: " + actionClient.getGoalState());
     }
 
-    void sleep(long msec) {
+    /**
+     *
+     * @param msec
+     */
+    void sleep(final long msec) {
         try {
             Thread.sleep(msec);
         } catch (InterruptedException ex) {
