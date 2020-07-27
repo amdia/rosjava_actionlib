@@ -108,10 +108,11 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param target
      */
     public final void addListener(final ActionClientListener<T_ACTION_FEEDBACK, T_ACTION_RESULT> target) {
-//        callbackTargets.add(target);
-        callbackStatusTargets.add(target);
-        callbackFeedbackTargets.add(target);
-        callbackResultTargets.add(target);
+        if (target != null) {
+            this.callbackStatusTargets.add(target);
+            this.callbackFeedbackTargets.add(target);
+            this.callbackResultTargets.add(target);
+        }
     }
 
     /**
@@ -120,10 +121,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
     public final void addListeners(final Collection<ActionClientListener<T_ACTION_FEEDBACK, T_ACTION_RESULT>> targets) {
         if (targets != null) {
             for (final ActionClientListener target : targets) {
-//                callbackTargets.add(target);
-                callbackStatusTargets.add(target);
-                callbackFeedbackTargets.add(target);
-                callbackResultTargets.add(target);
+                this.addListener(target);
             }
         }
     }
@@ -132,29 +130,34 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param target
      */
     public final void addListener(final ActionClientStatusListener target) {
-
-        this.callbackStatusTargets.add(target);
+        if (target != null) {
+            this.callbackStatusTargets.add(target);
+        }
     }
 
     /**
      * @param target
      */
     public final void addListener(final ActionClientFeedbackListener target) {
-        this.callbackFeedbackTargets.add(target);
+        if (target != null) {
+            this.callbackFeedbackTargets.add(target);
+        }
     }
 
     /**
      * @param target
      */
     public final void addListener(final ActionClientResultListener target) {
-        this.callbackResultTargets.add(target);
+        if (target != null) {
+            this.callbackResultTargets.add(target);
+        }
     }
 
     /**
      * @param target
      *
-     * @deprecated better use {@link ActionClient#addListener(ActionClientListener)} that clearly shows seperaton between different listeners type
-     * listeners can be added.
+     * @deprecated better use {@link ActionClient#addListener(ActionClientListener)} that clearly shows separation between different listeners type.
+     *
      */
     @Deprecated
     public final void attachListener(final ActionClientListener target) {
@@ -166,7 +169,6 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      */
     public final void detachListener(final ActionClientListener target) {
 
-//        callbackTargets.remove(target);
         callbackStatusTargets.remove(target);
         callbackFeedbackTargets.remove(target);
         callbackResultTargets.remove(target);
@@ -329,7 +331,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
         }
         goalManager.resultReceived();
         // Propagate the callback
-        for (final ActionClientResultListener<T_ACTION_RESULT> actionClientListener : callbackResultTargets) {
+        for (final ActionClientResultListener<T_ACTION_RESULT> actionClientListener : this.callbackResultTargets) {
             if (actionClientListener != null) {
                 actionClientListener.resultReceived(message);
             }
@@ -348,7 +350,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
             goalManager.updateStatus(af.getGoalStatusMessage().getStatus());
         }
         // Propagate the callback
-        for (final ActionClientFeedbackListener<T_ACTION_FEEDBACK> actionClientListener : callbackFeedbackTargets) {
+        for (final ActionClientFeedbackListener<T_ACTION_FEEDBACK> actionClientListener : this.callbackFeedbackTargets) {
             if (actionClientListener != null) {
                 actionClientListener.feedbackReceived(message);
             }
@@ -523,8 +525,6 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
     }
 
 
-
-
     /**
      * @param topicName
      *
@@ -557,7 +557,6 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
 
 
     /**
-     *
      * @return
      */
     public final boolean isActive() {
