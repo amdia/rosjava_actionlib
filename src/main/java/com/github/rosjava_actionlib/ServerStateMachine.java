@@ -28,8 +28,13 @@ import org.apache.commons.logging.LogFactory;
  * @author Spyros Koukas
  */
 final class ServerStateMachine {
+    private static final boolean THROW_EXCEPTION_ON_TRANSITION_ERROR = false;
 
     private static final Log LOGGER = LogFactory.getLog(ServerStateMachine.class);
+
+    /**
+     * Events that trigger transitions
+     */
     public static final class Events {
         public final static int CANCEL_REQUEST = 1;
         public final static int CANCEL = 2;
@@ -38,20 +43,29 @@ final class ServerStateMachine {
         public final static int SUCCEED = 5;
         public final static int ABORT = 6;
 
-        /** used for logging
+        /**
+         * used for logging
          *
          * @param event
+         *
          * @return
          */
-        public final static String eventToString(final int event){
-            switch (event){
-                case 1: return "CANCEL_REQUEST("+event+")";
-                case 2: return "CANCEL("+event+")";
-                case 3: return "REJECT("+event+")";
-                case 4: return "ACCEPT("+event+")";
-                case 5: return "SUCCEED("+event+")";
-                case 6: return "ABORT("+event+")";
-                default: return "UNKNOWN_STATE("+event+")";
+        public final static String eventToString(final int event) {
+            switch (event) {
+                case 1:
+                    return "CANCEL_REQUEST(" + event + ")";
+                case 2:
+                    return "CANCEL(" + event + ")";
+                case 3:
+                    return "REJECT(" + event + ")";
+                case 4:
+                    return "ACCEPT(" + event + ")";
+                case 5:
+                    return "SUCCEED(" + event + ")";
+                case 6:
+                    return "ABORT(" + event + ")";
+                default:
+                    return "UNKNOWN_STATE(" + event + ")";
             }
         }
     }
@@ -64,7 +78,6 @@ final class ServerStateMachine {
     }
 
     /**
-     *
      * @return
      */
     public final synchronized byte getState() {
@@ -76,15 +89,17 @@ final class ServerStateMachine {
     }
 
     /**
-     *
      * @return
      */
-    private static final IllegalStateException createAndLogTransitionException(final int event, final byte initialState,final byte nextState ){
+    private static final void handleTransitionException(final int event, final byte initialState, final byte nextState) {
         final IllegalStateException illegalStateException = new IllegalStateException(ServerStateMachine.class.getSimpleName()
-                +"Invalid transition from state:["+ActionLibMessagesUtils.goalStatusToString(initialState)+"("+initialState+")] to state:["+ActionLibMessagesUtils.goalStatusToString(nextState)+"("+nextState+")] on event:["+Events.eventToString(event)+"]!");
+                + "Invalid transition from state:[" + ActionLibMessagesUtils.goalStatusToString(initialState) + "(" + initialState + ")] to state:[" + ActionLibMessagesUtils.goalStatusToString(nextState) + "(" + nextState + ")] on event:[" + Events.eventToString(event) + "]!");
         LOGGER.error(ExceptionUtils.getStackTrace(illegalStateException));
-        return illegalStateException;
+        if (THROW_EXCEPTION_ON_TRANSITION_ERROR) {
+            throw illegalStateException;
+        }
     }
+
     /**
      * @param event
      *
@@ -106,7 +121,7 @@ final class ServerStateMachine {
                             nextState = GoalStatus.ACTIVE;
                             break;
                         default:
-                            throw createAndLogTransitionException(event,this.state,nextState);
+                            handleTransitionException(event, this.state, nextState);
 
                     }
                     break;
@@ -122,7 +137,7 @@ final class ServerStateMachine {
                             nextState = GoalStatus.PREEMPTING;
                             break;
                         default:
-                            throw createAndLogTransitionException(event,this.state,nextState);
+                            handleTransitionException(event, this.state, nextState);
                     }
                     break;
                 case GoalStatus.ACTIVE:
@@ -137,7 +152,7 @@ final class ServerStateMachine {
                             nextState = GoalStatus.ABORTED;
                             break;
                         default:
-                            throw createAndLogTransitionException(event,this.state,nextState);
+                            handleTransitionException(event, this.state, nextState);
                     }
                     break;
                 case GoalStatus.PREEMPTING:
@@ -152,7 +167,7 @@ final class ServerStateMachine {
                             nextState = GoalStatus.ABORTED;
                             break;
                         default:
-                            throw createAndLogTransitionException(event,this.state,nextState);
+                            handleTransitionException(event, this.state, nextState);
                     }
                     break;
                 case GoalStatus.REJECTED:
