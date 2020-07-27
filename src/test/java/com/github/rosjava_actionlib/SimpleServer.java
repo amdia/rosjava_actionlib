@@ -34,7 +34,7 @@ import org.ros.node.ConnectedNode;
  */
 class SimpleServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
     private static final Logger logger= LogManager.getLogger(SimpleClient.class);
-    private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> as = null;
+    private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> actionServer = null;
     private volatile FibonacciActionGoal currentGoal = null;
     private volatile boolean isStarted=false;
 
@@ -63,20 +63,20 @@ class SimpleServer extends AbstractNodeMain implements ActionServerListener<Fibo
         FibonacciActionResult result;
         String id;
 
-        as = new ActionServer<>(node, "/fibonacci", FibonacciActionGoal._TYPE,
+        actionServer = new ActionServer<>(node, "/fibonacci", FibonacciActionGoal._TYPE,
                 FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
 
-        as.attachListener(this);
+        actionServer.attachListener(this);
  		this.isStarted=true;
         while (node != null) {
             if (currentGoal != null) {
-                result = as.newResultMessage();
+                result = actionServer.newResultMessage();
                 result.getResult().setSequence(fibonacciSequence(currentGoal.getGoal().getOrder()));
                 id = currentGoal.getGoalId().getId();
-                as.setSucceed(id);
-                as.setGoalStatus(result.getStatus(), id);
+                actionServer.setSucceed(id);
+                actionServer.setGoalStatus(result.getStatus(), id);
                 System.out.println("Sending result...");
-                as.sendResult(result);
+                actionServer.sendResult(result);
                 currentGoal = null;
             }
         }

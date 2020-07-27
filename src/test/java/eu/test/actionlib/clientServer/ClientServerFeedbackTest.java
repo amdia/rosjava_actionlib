@@ -46,16 +46,16 @@ public class ClientServerFeedbackTest {
     @Before
     public void before() {
         try {
-            rosCore = RosCore.newPublic(ROS_MASTER_URI_PORT);
-            rosCore.start();
-            rosCore.awaitStart(testProperties.getRosCoreStartWaitMillis(), TimeUnit.MILLISECONDS);
-            actionLibServerFeedback = new ActionLibServerFeedback();
+            this.rosCore = RosCore.newPublic(ROS_MASTER_URI_PORT);
+            this.rosCore.start();
+            this.rosCore.awaitStart(testProperties.getRosCoreStartWaitMillis(), TimeUnit.MILLISECONDS);
+            this.actionLibServerFeedback = new ActionLibServerFeedback();
 
-            actionLibClientFeedback = new ActionLibClientFeedback();
+            this.actionLibClientFeedback = new ActionLibClientFeedback();
 
-            rosExecutor.startNodeMain(actionLibServerFeedback, actionLibServerFeedback.getDefaultNodeName().toString(),  ROS_MASTER_URI);
-            rosExecutor.startNodeMain(actionLibClientFeedback, actionLibClientFeedback.getDefaultNodeName().toString(),  ROS_MASTER_URI);
-            actionLibClientFeedback.waitForStart();
+            this.rosExecutor.startNodeMain(actionLibServerFeedback, actionLibServerFeedback.getDefaultNodeName().toString(),  ROS_MASTER_URI);
+            this.rosExecutor.startNodeMain(actionLibClientFeedback, actionLibClientFeedback.getDefaultNodeName().toString(),  ROS_MASTER_URI);
+            this.actionLibClientFeedback.waitForStart();
         } catch (final Exception er3) {
             logger.error(ExceptionUtils.getStackTrace(er3));
             Assume.assumeNoException(er3);
