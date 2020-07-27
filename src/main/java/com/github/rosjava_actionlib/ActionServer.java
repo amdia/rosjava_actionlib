@@ -48,7 +48,6 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     /**
      * Keeps the status of each goal
      */
-    private final class ServerGoal {
     private static final class ServerGoal<T_T_ACTION_GOAL extends Message> {
         private final T_T_ACTION_GOAL goal;
         private final ServerStateMachine stateMachine = new ServerStateMachine();
