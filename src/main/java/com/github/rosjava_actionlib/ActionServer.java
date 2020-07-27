@@ -97,15 +97,24 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
-     * Attach a listener to this actionlib server. The listener must implement the
-     * ActionServerListener interface which provides callback methods for each
+     * Attach an {@link ActionServerListener} to this {@link ActionServer}. The {@link ActionServerListener} provides callback methods for each
      * incoming message and event.
      *
      * @param target An object that implements the ActionServerListener interface.
      *               This object will receive the callbacks with the events.
      */
-    public void attachListener(final ActionServerListener target) {
+    public final void attachListener(final ActionServerListener target) {
         this.callbackTarget = target;
+    }
+
+    /**
+     * Removes the {@link ActionServerListener}, if already attached
+     * @return the old {@link ActionServerListener} or null if not present
+     */
+    public final ActionServerListener detachActionServerListener() {
+        final ActionServerListener oldActionServerListener = this.callbackTarget;
+        this.callbackTarget=null;
+        return oldActionServerListener;
     }
 
     /**
@@ -361,10 +370,11 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
-     * Finish the action server. Unregister publishers and listeners.
+     * Finish the action server.
+     * Unregister publishers and listeners.
      */
-    public void finish() {
-        callbackTarget = null;
+    public final void finish() {
+        this.callbackTarget = null;
         unpublishServer();
         unsubscribeToClient();
     }
