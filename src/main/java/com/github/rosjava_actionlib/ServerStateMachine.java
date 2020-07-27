@@ -17,40 +17,79 @@
 package com.github.rosjava_actionlib;
 
 import actionlib_msgs.GoalStatus;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /*
  * Class to manage the server state machine transitions.
+ *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
+ * @author Spyros Koukas
  */
-public class ServerStateMachine {
-    public static class Events {
+final class ServerStateMachine {
+
+    private static final Log LOGGER = LogFactory.getLog(ServerStateMachine.class);
+    public static final class Events {
         public final static int CANCEL_REQUEST = 1;
         public final static int CANCEL = 2;
         public final static int REJECT = 3;
         public final static int ACCEPT = 4;
         public final static int SUCCEED = 5;
         public final static int ABORT = 6;
+
+        /** used for logging
+         *
+         * @param event
+         * @return
+         */
+        public final static String eventToString(final int event){
+            switch (event){
+                case 1: return "CANCEL_REQUEST("+event+")";
+                case 2: return "CANCEL("+event+")";
+                case 3: return "REJECT("+event+")";
+                case 4: return "ACCEPT("+event+")";
+                case 5: return "SUCCEED("+event+")";
+                case 6: return "ABORT("+event+")";
+                default: return "UNKNOWN_STATE("+event+")";
+            }
+        }
     }
 
-    private int state;
+    private byte state;
 
     ServerStateMachine() {
         // Initial state
-        state = GoalStatus.PENDING;
+        this.state = GoalStatus.PENDING;
     }
 
-    public synchronized int getState() {
-        return state;
+    public final synchronized int getState() {
+        return this.state;
     }
 
-    public synchronized void setState(int s) {
-        state = s;
+    public final synchronized void setState(final byte newState) {
+        this.state = newState;
     }
 
-    public synchronized int transition(int event) throws Exception {
+    /**
+     *
+     * @return
+     */
+    private static final IllegalStateException createAndLogTransitionException(final int event, final byte initialState,final byte nextState ){
+        final IllegalStateException illegalStateException = new IllegalStateException(ServerStateMachine.class.getSimpleName()
+                +"Invalid transition from state:["+ActionLibMessagesUtils.goalStatusToString(initialState)+"("+initialState+")] to state:["+ActionLibMessagesUtils.goalStatusToString(nextState)+"("+nextState+")] on event:["+Events.eventToString(event)+"]!");
+        LOGGER.error(ExceptionUtils.getStackTrace(illegalStateException));
+        return illegalStateException;
+    }
+    /**
+     * @param event
+     *
+     * @return
+     */
+    public final synchronized int transition(final int event) {
         {
-            int nextState = state;
-            switch (state) {
+            byte nextState = this.state;
+            switch (this.state) {
                 case GoalStatus.PENDING:
                     switch (event) {
                         case Events.REJECT:
@@ -63,7 +102,8 @@ public class ServerStateMachine {
                             nextState = GoalStatus.ACTIVE;
                             break;
                         default:
-                            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
+                            throw createAndLogTransitionException(event,this.state,nextState);
+
                     }
                     break;
                 case GoalStatus.RECALLING:
@@ -78,7 +118,7 @@ public class ServerStateMachine {
                             nextState = GoalStatus.PREEMPTING;
                             break;
                         default:
-                            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
+                            throw createAndLogTransitionException(event,this.state,nextState);
                     }
                     break;
                 case GoalStatus.ACTIVE:
@@ -93,7 +133,7 @@ public class ServerStateMachine {
                             nextState = GoalStatus.ABORTED;
                             break;
                         default:
-                            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
+                            throw createAndLogTransitionException(event,this.state,nextState);
                     }
                     break;
                 case GoalStatus.PREEMPTING:
@@ -108,7 +148,7 @@ public class ServerStateMachine {
                             nextState = GoalStatus.ABORTED;
                             break;
                         default:
-                            throw new IllegalStateException("Actionlib server exception: Invalid transition event!");
+                            throw createAndLogTransitionException(event,this.state,nextState);
                     }
                     break;
                 case GoalStatus.REJECTED:
@@ -122,11 +162,11 @@ public class ServerStateMachine {
                 case GoalStatus.ABORTED:
                     break;
                 default:
-                    throw new Exception("Actionlib server exception: Invalid state!");
+                    throw new IllegalStateException(ServerStateMachine.class.getSimpleName() + " Error: Invalid internal " + GoalStatus.class.getSimpleName() + " state=[" + this.state + "]!");
             }
             // transition to the next state
-            state = nextState;
+            this.state = nextState;
         }
-        return state;
+        return this.state;
     }
 }
