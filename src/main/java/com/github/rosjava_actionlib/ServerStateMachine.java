@@ -63,7 +63,11 @@ final class ServerStateMachine {
         this.state = GoalStatus.PENDING;
     }
 
-    public final synchronized int getState() {
+    /**
+     *
+     * @return
+     */
+    public final synchronized byte getState() {
         return this.state;
     }
 

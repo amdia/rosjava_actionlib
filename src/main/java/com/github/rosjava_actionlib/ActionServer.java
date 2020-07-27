@@ -227,18 +227,12 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
             accepted = callbackTarget.acceptGoal(goal);
             if (accepted) {
                 // the user accepted the goal
-                try {
-                    goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.ACCEPT);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                }
+                this.goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.ACCEPT);
+
             } else {
                 // the user rejected the goal
-                try {
-                    goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.REJECT);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                }
+                this.goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.REJECT);
+
             }
         }
     }
@@ -310,8 +304,8 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @see actionlib_msgs.GoalStatus
      */
-    public int getGoalState(String goalId) {
-        int ret = 0;
+    public byte getGoalState(String goalId) {
+        byte ret = 0;
 
         if (goalTracker.containsKey(goalId)) {
             ret = goalTracker.get(goalId).state.getState();
@@ -325,52 +319,37 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * Express a succeed event for this goal. The state of the goal will be updated.
      */
     public void setSucceed(String goalIdString) {
-        try {
-            goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.SUCCEED);
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+        this.goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.SUCCEED);
     }
 
     /**
      * Express a preempted event for this goal. The state of the goal will be updated.
      */
     public void setPreempt(String goalIdString) {
-        try {
-            goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.CANCEL_REQUEST);
-            goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.CANCEL);
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+
+        goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.CANCEL_REQUEST);
+        goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.CANCEL);
     }
 
     /**
      * Express an aborted event for this goal. The state of the goal will be updated.
      */
     public void setAbort(String goalIdString) {
-        try {
-            goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.ABORT);
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+        this.goalTracker.get(goalIdString).state.transition(ServerStateMachine.Events.ABORT);
     }
 
     /**
      * Set goal ID and state information to the goal status message.
      *
-     * @param gstat     GoalStatus message.
-     * @param gidString String identifying the goal.
+     * @param goalStatus GoalStatus message.
+     * @param gidString  String identifying the goal.
      *
      * @see actionlib_msgs.GoalStatus
      */
-    public void setGoalStatus(GoalStatus gstat, String gidString) {
-        try {
-            ServerGoal serverGoal = goalTracker.get(gidString);
-            gstat.setGoalId(getGoalId(serverGoal.goal));
-            gstat.setStatus((byte) serverGoal.state.getState());
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+    public void setGoalStatus(final GoalStatus goalStatus, final String gidString) {
+        final ServerGoal serverGoal = this.goalTracker.get(gidString);
+        goalStatus.setGoalId(getGoalId(serverGoal.goal));
+        goalStatus.setStatus(serverGoal.state.getState());
     }
 
     /**
