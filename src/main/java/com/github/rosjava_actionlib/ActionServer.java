@@ -45,14 +45,16 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
         T_ACTION_RESULT extends Message> {
     private static final Log LOGGER = LogFactory.getLog(ActionServer.class);
 
+
     /**
      * Keeps the status of each goal
+     * @param <T_ACTION_GOAL_TYPE> the T_ACTION_GOAL type
      */
-    private static final class ServerGoal<T_T_ACTION_GOAL extends Message> {
-        private final T_T_ACTION_GOAL goal;
+    private static final class ServerGoal<T_ACTION_GOAL_TYPE extends Message> {
+        private final T_ACTION_GOAL_TYPE goal;
         private final ServerStateMachine stateMachine = new ServerStateMachine();
 
-        private ServerGoal(final T_T_ACTION_GOAL goal) {
+        private ServerGoal(final T_ACTION_GOAL_TYPE goal) {
             this.goal = goal;
         }
     }
@@ -217,13 +219,13 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * Unsubscribe from the client's topics.
      */
     private final void unsubscribeToClient() {
-        if (goalSubscriber != null) {
-            goalSubscriber.shutdown(5, TimeUnit.SECONDS);
-            goalSubscriber = null;
+        if (this.goalSubscriber != null) {
+            this.goalSubscriber.shutdown(5, TimeUnit.SECONDS);
+            this.goalSubscriber = null;
         }
-        if (cancelSubscriber != null) {
-            cancelSubscriber.shutdown(5, TimeUnit.SECONDS);
-            cancelSubscriber = null;
+        if (this.cancelSubscriber != null) {
+            this.cancelSubscriber.shutdown(5, TimeUnit.SECONDS);
+            this.cancelSubscriber = null;
         }
     }
 
@@ -304,7 +306,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @return The goal ID object.
      */
-    public final GoalID getGoalId(T_ACTION_GOAL goal) {
+    public final GoalID getGoalId(final T_ACTION_GOAL goal) {
 
         final GoalID gid = ActionLibMessagesUtils.getSubMessageFromMessage(goal, "getGoalId");
         return gid;
