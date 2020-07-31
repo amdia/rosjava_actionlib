@@ -31,7 +31,8 @@ public interface ActionServerListener<T_ACTION_GOAL extends Message> {
     /**
      * This callback is called when a message is received on the goal topic.
      * Note: this method is called right after the server starts tracking this
-     * goal and is intended for informative purposes.
+     * goal and is intended for informative purposes. This method is called for every goal received,
+     * regardless if the goal is accepted or not.
      *
      * @param goal the action goal received.
      */
@@ -46,6 +47,7 @@ public interface ActionServerListener<T_ACTION_GOAL extends Message> {
 
     /**
      * Callback method to accept a recently received action goal.
+     * This method can be also used to trigger that depend on accepting or rejecting the goal.
      *
      * @param goal The action goal received.
      * @return The implementer must return true if he accepts the goal or false
