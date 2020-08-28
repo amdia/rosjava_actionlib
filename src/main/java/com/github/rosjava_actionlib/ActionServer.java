@@ -23,7 +23,10 @@ import actionlib_msgs.GoalStatusArray;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.ros.RosCore;
+import org.ros.RosRun;
 import org.ros.internal.message.Message;
+import org.ros.master.client.MasterStateClient;
 import org.ros.message.MessageListener;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
@@ -45,9 +48,13 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
         T_ACTION_RESULT extends Message> {
     private static final Log LOGGER = LogFactory.getLog(ActionServer.class);
 
+    //default status_frequency is 5Hz for python and cpp
+    private static final long DEFAULT_STATUS_TICK_PERIOD_MILLIS = 200;
+    private static final long DEFAULT_STATUS_TICK_DELAY_MILLIS = 200;
 
     /**
      * Keeps the status of each goal
+     *
      * @param <T_ACTION_GOAL_TYPE> the T_ACTION_GOAL type
      */
     private static final class ServerGoal<T_ACTION_GOAL_TYPE extends Message> {
@@ -134,7 +141,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @see actionlib_msgs.GoalStatusArray
      */
-    public void sendStatus(final GoalStatusArray status) {
+    public final void sendStatus(final GoalStatusArray status) {
         this.statusPublisher.publish(status);
     }
 
@@ -143,7 +150,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param feedback An action feedback message to send.
      */
-    public void sendFeedback(final T_ACTION_FEEDBACK feedback) {
+    public final void sendFeedback(final T_ACTION_FEEDBACK feedback) {
         this.feedbackPublisher.publish(feedback);
     }
 
@@ -152,7 +159,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param result The action result message to send.
      */
-    public void sendResult(final T_ACTION_RESULT result) {
+    public final void sendResult(final T_ACTION_RESULT result) {
         this.resultPublisher.publish(result);
     }
 
@@ -161,17 +168,85 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      *
      * @param node The object representing a node connected to a ROS master.
      */
-    private void publishServer(final ConnectedNode node) {
-        this.statusPublisher = node.newPublisher(actionName + "/status", GoalStatusArray._TYPE);
-        this.feedbackPublisher = node.newPublisher(actionName + "/feedback", actionFeedbackType);
-        this.resultPublisher = node.newPublisher(actionName + "/result", actionResultType);
+    private final void publishServer(final ConnectedNode node) {
+        this.statusPublisher = node.newPublisher(this.getActionStatusTopic(), GoalStatusArray._TYPE);
+        this.feedbackPublisher = node.newPublisher(this.getActionFeedbackTopic(), actionFeedbackType);
+        this.resultPublisher = node.newPublisher(this.getActionResultTopic(), actionResultType);
         this.statusTick.scheduleAtFixedRate(new TimerTask() {
             @Override
             public final void run() {
                 ActionServer.this.sendStatusTick();
             }
-        }, 2000, 200); //default status_frequency is 5Hz for python and cpp
+        }, DEFAULT_STATUS_TICK_DELAY_MILLIS, DEFAULT_STATUS_TICK_PERIOD_MILLIS);
     }
+
+    /**
+     * @return
+     */
+    public final String[] getPublishedTopics() {
+        final String[] publishedTopics = new String[3];
+        publishedTopics[0] = this.getActionResultTopic();
+        publishedTopics[1] = this.getActionFeedbackTopic();
+        publishedTopics[2] = this.getActionStatusTopic();
+        return publishedTopics;
+    }
+
+    /**
+     * @return
+     */
+    public final String[] getSubscribedTopics() {
+        final String[] subscribedTopics = new String[2];
+        subscribedTopics[0] = this.getActionGoalTopic();
+        subscribedTopics[1] = this.getActionCancelTopic();
+
+        return subscribedTopics;
+    }
+
+    /**
+     * Subscribed topic
+     *
+     * @return
+     */
+    public final String getActionGoalTopic() {
+        return this.actionName + "/goal";
+    }
+
+    /**
+     * Subscribed topic
+     *
+     * @return
+     */
+    public final String getActionCancelTopic() {
+        return this.actionName + "/cancel";
+    }
+
+    /**
+     * Published topic
+     *
+     * @return
+     */
+    public final String getActionStatusTopic() {
+        return this.actionName + "/status";
+    }
+
+    /**
+     * Published topic
+     *
+     * @return
+     */
+    public final String getActionFeedbackTopic() {
+        return this.actionName + "/feedback";
+    }
+
+    /**
+     * Published topic
+     *
+     * @return
+     */
+    public final String getActionResultTopic() {
+        return this.actionName + "/result";
+    }
+
 
     /**
      * Stop publishing the action server topics.
@@ -197,8 +272,8 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * @param node The ROS node connected to the master.
      */
     private final void subscribeToClient(final ConnectedNode node) {
-        this.goalSubscriber = node.newSubscriber(actionName + "/goal", actionGoalType);
-        this.cancelSubscriber = node.newSubscriber(actionName + "/cancel", GoalID._TYPE);
+        this.goalSubscriber = node.newSubscriber(this.getActionGoalTopic(), actionGoalType);
+        this.cancelSubscriber = node.newSubscriber(this.getActionCancelTopic(), GoalID._TYPE);
 
         this.goalSubscriber.addMessageListener(new MessageListener<>() {
             @Override
@@ -230,7 +305,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
-     * Called when we get a message on the subscribed goal topic.
+     * Called when a message is received from the subscribed goal topic.
      */
     public final void gotGoal(final T_ACTION_GOAL goal) {
         final String goalIdString = getGoalId(goal).getId();
