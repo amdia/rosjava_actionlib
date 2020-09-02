@@ -24,7 +24,7 @@ import org.ros.internal.message.Message;
  *
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public class ClientGoalManager<T_ACTION_GOAL extends Message> {
+final class ClientGoalManager<T_ACTION_GOAL extends Message> {
     private ActionGoal<T_ACTION_GOAL> actionGoal = null;
     private final ClientStateMachine stateMachine;
 
@@ -43,13 +43,13 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
      * @return actionGoal
      **/
     final ActionGoal<T_ACTION_GOAL> getActionGoal() {
-        return actionGoal;
+        return this.actionGoal;
     }
 
     /**
      * @param actionGoal
      */
-    public ClientGoalManager(ActionGoal<T_ACTION_GOAL> actionGoal) {
+    ClientGoalManager(final ActionGoal<T_ACTION_GOAL> actionGoal) {
         this.actionGoal = actionGoal;
         this.stateMachine = new ClientStateMachine(ClientState.ERROR);
     }
@@ -57,7 +57,7 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     /**
      * @param actionGoal
      */
-    public void setGoal(final ActionGoal<T_ACTION_GOAL> actionGoal) {
+    final void setGoal(final ActionGoal<T_ACTION_GOAL> actionGoal) {
         this.actionGoal = actionGoal;
         if (this.stateMachine.isRunning()) {
             this.stateMachine.setState(ClientState.ERROR);
@@ -68,7 +68,7 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     /**
      * @param actionGoal
      */
-    public final void setGoal(final T_ACTION_GOAL actionGoal) {
+    final void setGoal(final T_ACTION_GOAL actionGoal) {
         final ActionGoal<T_ACTION_GOAL> actionGoalWrapper = new ActionGoal();
         actionGoalWrapper.setActionGoalMessage(actionGoal);
         this.setGoal(actionGoalWrapper);
@@ -77,21 +77,21 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     /**
      * @return
      */
-    public final boolean cancelGoal() {
+    final boolean cancelGoal() {
         return this.stateMachine.cancel();
     }
 
     /**
      * Signal that the result has been received.
      */
-    public final void resultReceived() {
+    final void resultReceived() {
         this.stateMachine.resultReceived();
     }
 
     /**
      * @param status
      */
-    public final void updateStatus(int status) {
+    final void updateStatus(int status) {
         this.stateMachine.transition(status);
     }
 
@@ -99,7 +99,7 @@ public class ClientGoalManager<T_ACTION_GOAL extends Message> {
     /**
      * @return
      */
-    public final ClientState getGoalState() {
+    final ClientState getGoalState() {
         return this.stateMachine.getState();
     }
 }
