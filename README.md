@@ -22,8 +22,7 @@ A pure java implementation of [actionlib](http://wiki.ros.org/actionlib) for [ro
  
 
 ## Downloading:
-1. Download the latest release of the project: https://github.com/ernestmc/rosjava_actionlib/archive/v0.2.0.zip
-2. Unzip it somewhere.
+ TODO
 
 ## Building
 The project will be compiled and tested in any OS (Windows, Linux, Mac) without any requirement for a ROS installation.
@@ -118,8 +117,6 @@ roslaunch rosjava_actionlib server_demo.launch --screen
 
 Use Ctrl+C to stop the execution once it's finished.
 
-
- 
 
 
 ## Motivation
