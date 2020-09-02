@@ -1,31 +1,24 @@
 # Actionlib for Rosjava
 A pure java implementation of [actionlib](http://wiki.ros.org/actionlib) for [rosjava](http://wiki.ros.org/rosjava).
 
-based on: github.com/ernestmc/rosjava_actionlib
+## Key Features:
+1. Easy developing and testing in any OS (Windows, Linux, Mac) without a ROS installation. 
+2. Compatible and usable with [ROS](https://www.ros.org). Tested with [ROS Indigo](http://wiki.ros.org/indigo).
 
 ## Requirements:
-* ROS Indigo http://wiki.ros.org/
-* Rosjava ```$ sudo apt-get install ros-indigo-rosjava``` http://wiki.ros.org/rosjava/Tutorials/indigo/Installation
-* Java 1.8 or greater (OpenJDK should work)
-* Also make sure you have the following packages: ```ros-indigo-actionlib``` ```ros-indigo-actionlib-tutorials``` ```ros-indigo-genjava```
-
-You can find a video tutorial showing how to install and test the library following the instructions below:
-https://youtu.be/FmmsMdEbYFs
+* Java 1.8 or greater (OpenJDK should work). Developed in JDK 11.
+* For usage with a ROS installation the following packages are needed: ```ros-indigo-actionlib``` ```ros-indigo-actionlib-tutorials``` ```ros-indigo-genjava```
+ 
 
 ## Downloading:
 1. Download the latest release of the project: https://github.com/ernestmc/rosjava_actionlib/archive/v0.2.0.zip
 2. Unzip it somewhere.
 
 ## Compiling:
-1. Open a terminal inside the folder where you unzipped the package.
-2. Compile the code using the following command: ```$ catkin_make```
+1. TODO
 
 ## Running a test client:
-1. Open a new terminal and get a ros master running: ```$ roscore```
-2. In another terminal run the actionlib sample server: ```$ rosrun actionlib_tutorials fibonacci_server```
-3. Run our client:
-  * Source the project environment: ```$ source devel/setup.bash```
-  * Run the client: ```$ rosrun rosjava_actionlib execute com.github.rosjava_actionlib.SimpleClient```
+1. TODO
 
 ## Output from the test client
 The test client will connect to the fibonacci server and send it a goal. It
@@ -57,12 +50,7 @@ Bye!
 ```
 
 ## Running a test server:
-1. Run our server:
-  * Source the project environment: ```$ source devel/setup.bash```
-  * Run the server: ```$ rosrun rosjava_actionlib execute com.github.rosjava_actionlib.SimpleServer```
-2. If its not already running, open a new terminal and get a ros master running: ```$ roscore```
-3. In another terminal run the actionlib sample client: ```$ rosrun actionlib_tutorials fibonacci_client```
-4. Once finished, use Ctrl+C to close the server.
+1. TODO
 
 ## Output from the test server
 The test server will start running and wait for clients to connect and send goal messages.
