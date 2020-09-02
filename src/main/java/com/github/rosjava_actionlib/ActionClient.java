@@ -153,21 +153,11 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
         }
     }
 
-    /**
-     * @param target
-     *
-     * @deprecated better use {@link ActionClient#addListener(ActionClientListener)} that clearly shows separation between different listeners type.
-     *
-     */
-    @Deprecated
-    public final void attachListener(final ActionClientListener target) {
-        this.addListener(target);
-    }
 
     /**
      * @param target
      */
-    public final void detachListener(final ActionClientListener target) {
+    public final void removeListener(final ActionClientListener target) {
 
         callbackStatusTargets.remove(target);
         callbackFeedbackTargets.remove(target);

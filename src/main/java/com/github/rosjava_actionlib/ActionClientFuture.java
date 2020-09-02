@@ -65,7 +65,7 @@ public final class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends
         }
         result.goalManager.setGoal(goal);
         actionClient.sendGoalWire(goal);
-        actionClient.attachListener(result);
+        actionClient.addListener(result);
         return result;
 
     }
@@ -210,16 +210,18 @@ public final class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends
      *
      */
     private final void disconnect() {
-        this.actionClient.detachListener(this);
+        this.actionClient.removeListener(this);
     }
 
+    /**
+     * @return
+     */
     @Override
     public final Future<Boolean> toBooleanFuture() {
         final ActionClientFuture<T_GOAL, T_FEEDBACK, T_RESULT> self = this;
-        return new Future<>() {
+        final Future<Boolean> resultFuture = new Future<>() {
             @Override
             public final boolean cancel(boolean bln) {
-
                 return self.cancel(bln);
             }
 
@@ -243,6 +245,8 @@ public final class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends
                 return this.get(timeout, timeUnit) != null;
             }
         };
+
+        return resultFuture;
 
     }
 
