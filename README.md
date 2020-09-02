@@ -4,18 +4,60 @@ A pure java implementation of [actionlib](http://wiki.ros.org/actionlib) for [ro
 ## Key Features:
 1. Easy developing and testing in any OS (Windows, Linux, Mac) without a ROS installation. 
 2. Compatible and usable with [ROS](https://www.ros.org). Tested with [ROS Indigo](http://wiki.ros.org/indigo).
-
+3. Uses [Log4j2](https://logging.apache.org/log4j/2.x/) and [SL4J](http://www.slf4j.org/)
+4. Smaller public API, with all the needed functionality plus some extras. 
+    * The API favours composition based designs and prevents inheriting the project classes. Where possible classes and methods are marked with the `final` modifier to prevent extension. 
+    * Includes separate ActionClientResult, ActionClientStatus and ActionClientFeedbackListener as well a complete ActionClientListener
+    * ActionClient can accept multiple simultaneous Client listeners of different types, that can also be removed
+    * The public methods and API includes only required elements. Only needed classes and methods are public.
+    * Refactored code, grouping together common elements
+5. Robust detection of started ActionServer in waitForActionServerToStart
+6. Targeted to be used as part of other Java / ROS Java applications via gradle or maven, similar to other java libraries
+ 
 ## Requirements:
-* Java 1.8 or greater (OpenJDK should work). Developed in JDK 11.
-* For usage with a ROS installation the following packages are needed: ```ros-indigo-actionlib``` ```ros-indigo-actionlib-tutorials``` ```ros-indigo-genjava```
+* Java 11 or greater (OpenJDK should work).
+* For usage with a ROS installation the following packages:
+    * are needed in runtime: ```ros-$ROS_DISTRO-actionlib``` ```ros-$ROS_DISTRO-genjava```
+    * could be helpful for testing/development: ```ros-$ROS_DISTRO-actionlib-tutorials``` 
  
 
 ## Downloading:
 1. Download the latest release of the project: https://github.com/ernestmc/rosjava_actionlib/archive/v0.2.0.zip
 2. Unzip it somewhere.
 
-## Compiling:
-1. TODO
+## Building
+The project will be compiled and tested in any OS (Windows, Linux, Mac) without any requirement for a ROS installation.
+Instructions are provided hereafter for Windows and Linux.  
+### Windows Power Shell
+1. [Clone](https://git-scm.com/docs/git-clone) the [project repository](https://github.com/SpyrosKou/rosjava_actionlib.git):
+`git clone https://github.com/SpyrosKou/rosjava_actionlib.git`
+
+2. Go into the cloned repository directory:
+`cd .\rosjava_actionlib\`
+
+3. Build the project.
+`.\gradlew.bat build`
+
+4. Running the Unit tests. The tests will run during the build, but the following command can run the tests on demand. 
+`.\gradlew.bat test`
+
+
+### Linux
+1. [Clone](https://git-scm.com/docs/git-clone) the [project repository](https://github.com/SpyrosKou/rosjava_actionlib.git):
+`git clone https://github.com/SpyrosKou/rosjava_actionlib.git`
+
+2. Go into the cloned repository directory:
+`cd rosjava_actionlib/`
+
+3. [Add execute permission](http://manpages.ubuntu.com/manpages/focal/man1/chmod.1.html) to gradlew script:
+`sudo chmod +x gradlew`
+
+4. Build the project. Tests will be executed automatically.
+`./gradlew build`
+
+5. Running the Unit tests. The tests will run during the build, but the following command can run the tests on demand. 
+./gradlew test`
+
 
 ## Running a test client:
 1. TODO
@@ -77,8 +119,8 @@ roslaunch rosjava_actionlib server_demo.launch --screen
 Use Ctrl+C to stop the execution once it's finished.
 
 
-## Running unit tests
-```
-$ cd src/rosjava_actionlib/
-$ ./gradlew test
-```
+ 
+
+
+## Motivation
+ TODO
