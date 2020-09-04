@@ -35,7 +35,7 @@ import java.util.concurrent.TimeoutException;
  * @param <T_FEEDBACK>
  * @param <T_RESULT>
  */
-public final class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Message, T_RESULT extends Message>
+final class ActionClientFuture<T_GOAL extends Message, T_FEEDBACK extends Message, T_RESULT extends Message>
         implements ActionFuture<T_GOAL, T_FEEDBACK, T_RESULT>,
         ActionClientListener<T_FEEDBACK, T_RESULT> {
     private static final Log LOGGER = LogFactory.getLog(ActionClientFuture.class);
