@@ -79,9 +79,7 @@ class ActionLibServerFeedback extends AbstractNodeMain implements ActionServerLi
     public void onStart(final ConnectedNode node) {
 
 
-        this.actionServer = new ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, DEFAULT_ACTION_NAME, FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
-
-        this.actionServer.attachListener(this);
+        this.actionServer = new ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node,this, DEFAULT_ACTION_NAME, FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
         this.isStarted = true;
 
     }

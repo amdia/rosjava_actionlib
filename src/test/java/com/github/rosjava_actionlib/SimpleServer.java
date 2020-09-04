@@ -63,10 +63,10 @@ class SimpleServer extends AbstractNodeMain implements ActionServerListener<Fibo
         FibonacciActionResult result;
         String id;
 
-        actionServer = new ActionServer<>(node, "/fibonacci", FibonacciActionGoal._TYPE,
+        actionServer = new ActionServer<>(node, this,"/fibonacci", FibonacciActionGoal._TYPE,
                 FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
 
-        actionServer.attachListener(this);
+
  		this.isStarted=true;
         while (node != null) {
             if (currentGoal != null) {

@@ -20,6 +20,8 @@ package com.github.rosjava_actionlib;
 import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import actionlib_msgs.GoalStatusArray;
+import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +33,6 @@ import org.ros.node.topic.Subscriber;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -75,7 +76,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     private Publisher<GoalStatusArray> statusPublisher = null;
     private final ConnectedNode node;
     private final String actionName;
-    private final List<ActionServerListener> callbackStatusTargets = new CopyOnWriteArrayList<>();
+    private final ActionServerListener<T_ACTION_GOAL> actionServerListener;
 
     private Timer statusTick = new Timer();
     private ConcurrentHashMap<String, ServerGoal<T_ACTION_GOAL>> goalIdToGoalStatusMap = new ConcurrentHashMap<>(1);
@@ -83,20 +84,29 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     /**
      * Constructor.
      *
-     * @param node               Object representing a node connected to a ROS master.
-     * @param actionName         String that identifies the name of this action. This name
-     *                           is used for naming the ROS topics.
-     * @param actionGoalType     String holding the type for the action goal message.
-     * @param actionFeedbackType String holding the type for the action feedback
-     *                           message.
-     * @param actionResultType   String holding the type for the action result
-     *                           message.
+     * @param node                 Object representing a node connected to a ROS master.
+     * @param actionServerListener the Listener of the T_ACTION_GOAL this object is used to consume incoming goals
+     * @param actionName           String that identifies the name of this action. This name
+     *                             is used for naming the ROS topics.
+     * @param actionGoalType       String holding the type for the action goal message.
+     * @param actionFeedbackType   String holding the type for the action feedback
+     *                             message.
+     * @param actionResultType     String holding the type for the action result
+     *                             message.
      */
     public ActionServer(final ConnectedNode node
+            , final ActionServerListener<T_ACTION_GOAL> actionServerListener
             , final String actionName
             , final String actionGoalType
             , final String actionFeedbackType
             , final String actionResultType) {
+        Objects.requireNonNull(node);
+        Objects.requireNonNull(actionServerListener);
+        Preconditions.checkArgument(StringUtils.isNotBlank(actionName));
+        Preconditions.checkArgument(StringUtils.isNotBlank(actionGoalType));
+        Preconditions.checkArgument(StringUtils.isNotBlank(actionFeedbackType));
+        Preconditions.checkArgument(StringUtils.isNotBlank(actionResultType));
+        this.actionServerListener = actionServerListener;
         this.node = node;
         this.actionName = actionName;
         this.actionGoalType = actionGoalType;
@@ -106,30 +116,6 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
         this.connect(node);
     }
 
-    /**
-     * Attach an {@link ActionServerListener} to this {@link ActionServer}. The {@link ActionServerListener} provides callback methods for each
-     * incoming message and event.
-     * Multiple listeners can be added.
-     *
-     * @param target An object that implements the ActionServerListener interface.
-     *               This object will receive the callbacks with the events.
-     */
-    public final void attachListener(final ActionServerListener target) {
-        if (target != null) {
-            this.callbackStatusTargets.add(target);
-        }
-    }
-
-    /**
-     * Removes the {@link ActionServerListener}, if already attached
-     *
-     * @return the old {@link ActionServerListener}s
-     */
-    public final List<ActionServerListener> detachAllActionServerListeners() {
-        final List<ActionServerListener> oldActionServerListeners = new ArrayList<>(this.callbackStatusTargets);
-        this.callbackStatusTargets.clear();
-        return oldActionServerListeners;
-    }
 
     /**
      * Publish the current status information for the tracked goals on the /status topic.
@@ -309,32 +295,29 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
 
         // start tracking this newly received goal
         this.goalIdToGoalStatusMap.put(goalIdString, new ServerGoal<>(goal));
-        for (final ActionServerListener actionServerListener : this.callbackStatusTargets) {
-            // Propagate the callback
 
-            // inform the user of a received message
-            actionServerListener.goalReceived(goal);
-            // ask the user to accept the goal
-            final boolean accepted = actionServerListener.acceptGoal(goal);
-            if (accepted) {
-                // the user accepted the goal
-                this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.ACCEPT);
+        // Propagate the callback
 
-            } else {
-                // the user rejected the goal
-                this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.REJECT);
-            }
+        // inform the user of a received message
+        this.actionServerListener.goalReceived(goal);
+        // ask the user to accept the goal
+        final boolean accepted = this.actionServerListener.acceptGoal(goal);
+        if (accepted) {
+            // the user accepted the goal
+            this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.ACCEPT);
+
+        } else {
+            // the user rejected the goal
+            this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.REJECT);
         }
+
     }
 
     /**
      * Called when we get a message on the subscribed cancel topic.
      */
     public final void gotCancel(final GoalID gid) {
-        for (final ActionServerListener actionServerListener : this.callbackStatusTargets) {
-            // Propagate the callback
-            actionServerListener.cancelReceived(gid);
-        }
+        this.actionServerListener.cancelReceived(gid);
     }
 
     /**
@@ -455,7 +438,6 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * The programmer need to ensure that this method is called when the program has finished using this {@link ActionServer}
      */
     public final void finish() {
-        this.callbackStatusTargets.clear();
         unpublishServer();
         unsubscribeToClient();
     }
