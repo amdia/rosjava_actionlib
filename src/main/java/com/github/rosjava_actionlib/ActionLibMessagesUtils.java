@@ -17,12 +17,10 @@
 package com.github.rosjava_actionlib;
 
 
-import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.ros.internal.message.Message;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
@@ -45,7 +43,7 @@ final class ActionLibMessagesUtils {
      * @return
      */
     public static final boolean isKnownGoalStatus(final byte goalStatus) {
-        return goalStatus == GoalStatus.PENDING ||
+        final boolean result = goalStatus == GoalStatus.PENDING ||
                 goalStatus == GoalStatus.ACTIVE ||
                 goalStatus == GoalStatus.PREEMPTED ||
                 goalStatus == GoalStatus.SUCCEEDED ||
@@ -55,6 +53,8 @@ final class ActionLibMessagesUtils {
                 goalStatus == GoalStatus.RECALLING ||
                 goalStatus == GoalStatus.RECALLED ||
                 goalStatus == GoalStatus.LOST;
+
+        return result;
     }
 
     /**
@@ -65,8 +65,6 @@ final class ActionLibMessagesUtils {
      * @return
      */
     public static final String goalStatusToString(final GoalStatus goalStatus) {
-
-
         if (goalStatus != null) {
             final StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("{");
@@ -90,9 +88,16 @@ final class ActionLibMessagesUtils {
         }
     }
 
-    private static final String[] GOAL_STATUS_TO_STRING = createGoalStatus();
+    /**
+     *
+     */
+    private static final String[] GOAL_STATUS_TO_STRING = createGoalStatusArray();
 
-    private static final String[] createGoalStatus() {
+    /**
+     *
+     * @return
+     */
+    private static final String[] createGoalStatusArray() {
         final String[] goalStatusArray = new String[10];
         goalStatusArray[GoalStatus.PENDING] = "PENDING";
         goalStatusArray[GoalStatus.ACTIVE] = "ACTIVE";
@@ -124,20 +129,6 @@ final class ActionLibMessagesUtils {
         return stateName;
     }
 
-    /**
-     * Convenience method for retrieving the goal ID of a given action goal message.
-     *
-     * @param goal The action goal message from where to obtain the goal ID.
-     *
-     * @return Goal ID object containing the ID of the action message.
-     *
-     * @see actionlib_msgs.GoalID
-     */
-    @Deprecated
-    public static final GoalID getGoalId(final Message goal) {
-        return getSubMessageFromMessage(goal, "getGoalId");
-
-    }
 
 
     /**
