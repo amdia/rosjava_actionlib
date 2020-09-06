@@ -57,7 +57,6 @@ final class GoalIDGenerator {
      */
     GoalIDGenerator(final ConnectedNode connectedNode) {
         this.connectedNode = connectedNode;
-
         this.nodeNamePlusSeparator = connectedNode.getName().toString() + separator;
     }
 
@@ -69,8 +68,7 @@ final class GoalIDGenerator {
      */
     final String generateID(final GoalID goalId) {
         final Time currentTime = connectedNode.getCurrentTime();
-        final String id = this.nodeNamePlusSeparator + goalCount.incrementAndGet() + separator + currentTime.secs + "." + currentTime.nsecs;
-
+        final String id = this.nodeNamePlusSeparator + goalCount.incrementAndGet();
         goalId.setId(id);
         goalId.setStamp(currentTime);
 
