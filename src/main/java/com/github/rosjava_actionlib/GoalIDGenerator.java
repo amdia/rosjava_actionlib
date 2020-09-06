@@ -63,18 +63,15 @@ final class GoalIDGenerator {
     }
 
     /**
-     * Creates a GoalID object with an unique id and a timestamp of the current
-     * time.
+     * Updates the {@param goalId} with a unique id and a timestamp.
      *
-     * @return GoalID object
+     * @param goalId the {@link GoalID} to update
      */
-    final String generateID(final GoalID goalId) {
+    final void generateID(final GoalID goalId) {
         final Time currentTime = this.connectedNode.getCurrentTime();
-        final String id = this.nodeNamePlusSeparator + GoalIDGenerator.goalCount.incrementAndGet();
-
-        goalId.setId(id);
         goalId.setStamp(currentTime);
 
-        return id;
+        final String id = this.nodeNamePlusSeparator + GoalIDGenerator.goalCount.incrementAndGet();
+        goalId.setId(id);
     }
 }
