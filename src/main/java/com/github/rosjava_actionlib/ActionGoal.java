@@ -26,15 +26,40 @@ import java.util.Objects;
 /**
  * Class to encapsulate the action goal object.
  *
+ * @author Spyros Koukas
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
 public final class ActionGoal<T_ACTION_GOAL extends Message> {
-    private T_ACTION_GOAL goalMessage = null;
 
-    public ActionGoal(T_ACTION_GOAL ag) {
-        goalMessage = ag;
+
+    private T_ACTION_GOAL goalMessage = null;
+    //Getters and setters name
+
+    private static final String SET_GOAL_METHOD_NAME = "setGoal";
+    private static final String GET_GOAL_METHOD_NAME = "getGoal";
+
+    private static final String SET_STAMP_METHOD_NAME = "setStamp";
+    private static final String GET_STAMP_METHOD_NAME = "getStamp";
+
+    private static final String SET_ID_METHOD_NAME = "setId";
+    private static final String GET_ID_METHOD_NAME = "getId";
+
+    private static final String SET_SEQ_METHOD_NAME = "setSeq";
+    private static final String GET_SEQ_METHOD_NAME = "getSeq";
+
+    private static final String GET_GOAL_ID_METHOD_NAME = "getGoalId";
+    private static final String GET_HEADER_METHOD_NAME = "getHeader";
+
+    /**
+     * @param actionGoalMessage
+     */
+    public ActionGoal(final T_ACTION_GOAL actionGoalMessage) {
+        this.goalMessage = actionGoalMessage;
     }
 
+    /**
+     *
+     */
     public ActionGoal() {
     }
 
@@ -45,11 +70,11 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      *
      * @see std_msgs.Header
      */
-    public int getHeaderSequence() {
+    public final int getHeaderSequence() {
 
         final Header header = getHeaderMessage();
         final int headerSequence = header == null ? -1 :
-                ActionLibMessagesUtils.getSubMessageFromMessage(header, "getSeq");
+                ActionLibMessagesUtils.getSubMessageFromMessage(header,GET_SEQ_METHOD_NAME);
 
         return headerSequence;
     }
@@ -61,10 +86,10 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      *
      * @see std_msgs.Header
      */
-    public void setHeaderSequence(int seq) {
+    public final void setHeaderSequence(final int seq) {
         final Header header = getHeaderMessage();
         if (header != null) {
-            ActionLibMessagesUtils.setSubMessageFromMessage(header,new Integer(seq),"setSeq");
+            ActionLibMessagesUtils.setSubMessageFromMessage(header, Integer.valueOf(seq), SET_SEQ_METHOD_NAME);
 
         }
     }
@@ -76,14 +101,15 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      *
      * @see org.ros.message.Time
      */
-    public Time getHeaderTimestamp() {
+    public final Time getHeaderTimestamp() {
         Time time = null;
         final Header header = getHeaderMessage();
         if (header != null) {
-            time=ActionLibMessagesUtils.getSubMessageFromMessage(header,"getStamp");
+            time = ActionLibMessagesUtils.getSubMessageFromMessage(header, GET_STAMP_METHOD_NAME);
         }
         return time;
     }
+
 
     /**
      * Sets the time stamp for the action goal message's header.
@@ -92,10 +118,10 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      *
      * @see org.ros.message.Time
      */
-    public void setHeaderTimestamp(final Time time) {
+    public final void setHeaderTimestamp(final Time time) {
         final Header header = getHeaderMessage();
         if (header != null) {
-            ActionLibMessagesUtils.setSubMessageFromMessage(header,time,"setStamp");
+            ActionLibMessagesUtils.setSubMessageFromMessage(header, time, SET_STAMP_METHOD_NAME);
         }
     }
 
@@ -107,24 +133,23 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      *
      * @see std_msgs.Header
      */
-    public Header getHeaderMessage() {
-        Header header= null;
+    public final Header getHeaderMessage() {
+        Header header = null;
         if (this.goalMessage != null) {
-            header=ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage,"getHeader");
+            header = ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage, GET_HEADER_METHOD_NAME);
 
         }
         return header;
     }
 
     /**
-     *
      * @return
      */
     public final String getGoalId() {
-       String id = null;
-       final GoalID gid = getGoalIdMessage();
+        String id = null;
+        final GoalID gid = getGoalIdMessage();
         if (gid != null) {
-            id=ActionLibMessagesUtils.getSubMessageFromMessage(gid,"getId");
+            id = ActionLibMessagesUtils.getSubMessageFromMessage(gid, GET_ID_METHOD_NAME);
         }
         return id;
     }
@@ -132,25 +157,17 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
     /**
      * Set the action goal's goal ID string and timestamp.
      *
-     * @param id Identification string for this goal.
-     * @param t  Time stamp (org.ros.message.Time).
+     * @param id   Identification string for this goal.
+     * @param time Time stamp (org.ros.message.Time).
      */
-    public void setGoalId(final String id,final Time time) {
+    public final void setGoalId(final String id, final Time time) {
         final GoalID gid = getGoalIdMessage();
         if (gid != null) {
-
-            ActionLibMessagesUtils.setSubMessageFromMessage(gid,id,"setId");
-            ActionLibMessagesUtils.setSubMessageFromMessage(gid,time,"setStamp");
+            ActionLibMessagesUtils.setSubMessageFromMessage(gid, id, SET_ID_METHOD_NAME);
+            ActionLibMessagesUtils.setSubMessageFromMessage(gid, time, SET_STAMP_METHOD_NAME);
         }
     }
 
-    public Time getGoalIdTimestamp() {
-        return null;
-    }
-
-    public void setGoalIdTimestamp(Time t) {
-
-    }
 
     /**
      * Return the actionlib GoalID message for this action goal.
@@ -159,41 +176,36 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
      *
      * @see actionlib_msgs.GoalID
      */
-    public GoalID getGoalIdMessage() {
-        GoalID gid = null;
+    public final GoalID getGoalIdMessage() {
+        GoalID goalID = null;
         if (this.goalMessage != null) {
-            gid=ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage, "getGoalId");
-
+            goalID = ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage, GET_GOAL_ID_METHOD_NAME);
         }
-        return gid;
+        return goalID;
     }
 
-    public void setGoalIdMessage(GoalID gid) {
 
+    /**
+     * @return
+     */
+    public final T_ACTION_GOAL getActionGoalMessage() {
+        return this.goalMessage;
     }
 
     /**
      * @return
      */
-    public T_ACTION_GOAL getActionGoalMessage() {
-        return goalMessage;
+    public final void setActionGoalMessage(final T_ACTION_GOAL actionGoalMessage) {
+        this.goalMessage = actionGoalMessage;
     }
 
     /**
      * @return
      */
-    public void setActionGoalMessage(final T_ACTION_GOAL agm) {
-        goalMessage = agm;
-    }
-
-    /**
-     * @return
-     */
-    public Message getGoalMessage() {
+    public final Message getGoalMessage() {
         Message message = null;
         if (this.goalMessage != null) {
-            message=ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage,"getGoal");
-
+            message = ActionLibMessagesUtils.getSubMessageFromMessage(this.goalMessage, GET_GOAL_METHOD_NAME);
         }
         return message;
     }
@@ -201,15 +213,14 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
     /**
      * @param message
      */
-    public void setGoalMessage(final Message message) {
+    public final void setGoalMessage(final Message message) {
         if (this.goalMessage != null) {
-            ActionLibMessagesUtils.setSubMessageFromMessage(this.goalMessage,message,"setGoal");
-
+            ActionLibMessagesUtils.setSubMessageFromMessage(this.goalMessage, message, SET_GOAL_METHOD_NAME);
         }
     }
 
     @Override
-    public boolean equals(final Object object) {
+    public final boolean equals(final Object object) {
         if (this == object) return true;
         if (!(object instanceof ActionGoal)) return false;
         final ActionGoal<?> that = (ActionGoal<?>) object;
@@ -217,7 +228,7 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
     }
 
     @Override
-    public  int hashCode() {
+    public final int hashCode() {
         return Objects.hash(getGoalMessage());
     }
 
