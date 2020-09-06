@@ -22,22 +22,23 @@ import actionlib_msgs.GoalID;
 import org.ros.message.Time;
 import org.ros.node.ConnectedNode;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The GoalIDGenerator may be used to create unique GoalIDs.
  * <p>
  * <p>
- * The node's nodeName will be used and the time on the node .
+ * The node's nodeName will be used plus a unique sequential number.
  *
  * @author Alexander C. Perzylo, perzylo@cs.tum.edu
  * @author Spyros Koukas
  */
 final class GoalIDGenerator {
     /**
-     * A global ID which provide a count for each goal id.
+     * A global counter to be used in each goal id.
      */
-    private static final AtomicLong goalCount = new AtomicLong(0);
+    private static final AtomicLong goalCount = new AtomicLong(1);
 
     /**
      * Unique nodeName to prepend to the goal id. This will generally be a fully
@@ -45,7 +46,7 @@ final class GoalIDGenerator {
      */
     private final ConnectedNode connectedNode;
     private final String nodeNamePlusSeparator;
-    private static final String separator = "-";
+    private static final String SEPARATOR = "-";
 
 
     /**
@@ -56,8 +57,9 @@ final class GoalIDGenerator {
      *                      unique in the system.
      */
     GoalIDGenerator(final ConnectedNode connectedNode) {
+        Objects.requireNonNull(connectedNode);
         this.connectedNode = connectedNode;
-        this.nodeNamePlusSeparator = connectedNode.getName().toString() + separator;
+        this.nodeNamePlusSeparator = connectedNode.getName().toString() + SEPARATOR;
     }
 
     /**
@@ -67,8 +69,9 @@ final class GoalIDGenerator {
      * @return GoalID object
      */
     final String generateID(final GoalID goalId) {
-        final Time currentTime = connectedNode.getCurrentTime();
-        final String id = this.nodeNamePlusSeparator + goalCount.incrementAndGet();
+        final Time currentTime = this.connectedNode.getCurrentTime();
+        final String id = this.nodeNamePlusSeparator + GoalIDGenerator.goalCount.incrementAndGet();
+
         goalId.setId(id);
         goalId.setStamp(currentTime);
 
