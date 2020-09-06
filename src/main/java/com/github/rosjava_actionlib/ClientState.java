@@ -46,6 +46,14 @@ public enum ClientState {
     }
 
     /**
+     * @return
+     */
+    public final boolean isRunning() {
+        return this.getValue() >= ClientState.WAITING_FOR_GOAL_ACK.getValue() && this.getValue() < ClientState.DONE.getValue();
+
+    }
+
+    /**
      * @param value
      */
     ClientState(final int value) {

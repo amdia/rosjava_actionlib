@@ -92,14 +92,16 @@ final class ClientStateMachine {
     final synchronized void transition(final int goalStatus) {
 
         // transition to next states
-        final List<ClientState> nextStates = getTransition(goalStatus);
-        final Iterator<ClientState> iterStates = nextStates.iterator();
+        final List<ClientState> nextStates = this.getTransition(goalStatus);
 
-        log.trace("State transition invoked. GoalStatus:" + goalStatus);
-
-        while (iterStates.hasNext()) {
-            this.state = iterStates.next();
+        if (this.log.isTraceEnabled()) {
+            this.log.trace("State transition invoked. GoalStatus:" + goalStatus);
         }
+
+        for (final ClientState state : nextStates) {
+            this.state = state;
+        }
+
     }
 
     /**
@@ -108,18 +110,22 @@ final class ClientStateMachine {
      *
      * @param goalStatus The current status of the tracked goal.
      *
-     * @return A vector with the list of next states. The states should be
+     * @return A list with the list of next states. The states should be
      * transitioned in order. This is necessary because if we loose a state update
      * we might still be able to infer the actual transition history that took us
      * to the final goal state.
      */
     final List<ClientState> getTransitionInteger(int goalStatus) {
-        return getTransition(goalStatus).stream().collect(Collectors.toList());
+        return this.getTransition(goalStatus).stream().collect(Collectors.toList());
     }
 
-
-    final List<ClientState> getTransition(int goalStatus) {
-        List<ClientState> stateList = new LinkedList<>();
+    /**
+     * @param goalStatus
+     *
+     * @return
+     */
+    private final List<ClientState> getTransition(int goalStatus) {
+        final List<ClientState> stateList = new ArrayList<>();
 
         switch (this.state) {
             case WAITING_FOR_GOAL_ACK:
@@ -429,10 +435,10 @@ final class ClientStateMachine {
      * then its next state will be a {@link ClientState#ERROR} state.
      */
     final void resultReceived() {
-        if (state == ClientState.WAITING_FOR_RESULT) {
-            state = ClientState.DONE;
+        if (this.state == ClientState.WAITING_FOR_RESULT) {
+            this.state = ClientState.DONE;
         } else {
-            state = ClientState.ERROR;
+            this.state = ClientState.ERROR;
         }
     }
 
@@ -441,14 +447,17 @@ final class ClientStateMachine {
         throw new NotImplementedException("Not Implemented");
     }
 
+    /**
+     * @return the
+     */
     final boolean isRunning() {
-        return state.getValue() >= 0 && state.getValue() < 7;
+        return this.state.isRunning();
     }
 
     /**
      * @return
      */
     final ClientState getLatestGoalStatus() {
-        return latestGoalStatus;
+        return this.latestGoalStatus;
     }
 }
