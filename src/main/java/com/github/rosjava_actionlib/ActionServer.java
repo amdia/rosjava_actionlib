@@ -235,18 +235,42 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * Stop publishing the action server topics.
      */
     private final void unpublishServer() {
+        if (this.statusTick != null) {
+            try {
+                this.statusTick.purge();
+                this.statusTick.cancel();
+                this.statusTick = null;
+
+            } catch (final Exception exception) {
+                LOGGER.error(ExceptionUtils.getStackTrace(exception));
+            }
+        }
+
         if (this.statusPublisher != null) {
-            this.statusPublisher.shutdown(5, TimeUnit.SECONDS);
-            this.statusPublisher = null;
+            try {
+                this.statusPublisher.shutdown(5, TimeUnit.SECONDS);
+                this.statusPublisher = null;
+            } catch (final Exception exception) {
+                LOGGER.error(ExceptionUtils.getStackTrace(exception));
+            }
         }
         if (this.feedbackPublisher != null) {
-            this.feedbackPublisher.shutdown(5, TimeUnit.SECONDS);
-            this.feedbackPublisher = null;
+            try {
+                this.feedbackPublisher.shutdown(5, TimeUnit.SECONDS);
+                this.feedbackPublisher = null;
+            } catch (final Exception exception) {
+                LOGGER.error(ExceptionUtils.getStackTrace(exception));
+            }
         }
         if (this.resultPublisher != null) {
-            this.resultPublisher.shutdown(5, TimeUnit.SECONDS);
-            this.resultPublisher = null;
+            try {
+                this.resultPublisher.shutdown(5, TimeUnit.SECONDS);
+                this.resultPublisher = null;
+            } catch (final Exception exception) {
+                LOGGER.error(ExceptionUtils.getStackTrace(exception));
+            }
         }
+
     }
 
     /**
@@ -325,10 +349,10 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * This is used like a heartbeat to update the status of every tracked goal.
      */
     public final void sendStatusTick() {
-        final GoalStatusArray status = this.statusPublisher.newMessage();
-        final List<GoalStatus> goalStatusList = new ArrayList<>();
-
         try {
+            final GoalStatusArray status = this.statusPublisher.newMessage();
+            final List<GoalStatus> goalStatusList = new ArrayList<>();
+
             for (final Iterator<ServerGoal<T_ACTION_GOAL>> sgIterator = this.goalIdToGoalStatusMap.values().iterator(); sgIterator.hasNext(); ) {
                 final ServerGoal<T_ACTION_GOAL> serverGoal = sgIterator.next();
                 final GoalStatus goalStatus = node.getTopicMessageFactory().newFromType(GoalStatus._TYPE);
@@ -336,22 +360,30 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
                 goalStatus.setStatus((byte) serverGoal.stateMachine.getState());
                 goalStatusList.add(goalStatus);
             }
+
+            status.setStatusList(goalStatusList);
+            sendStatus(status);
+
         } catch (final Exception exception) {
             LOGGER.error(ExceptionUtils.getStackTrace(exception));
-        } catch (final Throwable throwable) {
-            LOGGER.error(ExceptionUtils.getStackTrace(throwable));
         }
 
-        status.setStatusList(goalStatusList);
-        sendStatus(status);
     }
 
+    /**
+     *
+     * @return a new T_ACTION_RESULT result message
+     */
     public final T_ACTION_RESULT newResultMessage() {
-        return resultPublisher.newMessage();
+        return this.resultPublisher.newMessage();
     }
 
+    /**
+     *
+     * @return a new T_ACTION_FEEDBACK Message
+     */
     public final T_ACTION_FEEDBACK newFeedbackMessage() {
-        return feedbackPublisher.newMessage();
+        return this.feedbackPublisher.newMessage();
     }
 
     /**
