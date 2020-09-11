@@ -364,7 +364,9 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
             this.goalManager.updateStatus(goalStatus.getStatus());
         } else {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Status update is not for current goal!");
+                if (message.getStatusList() != null && !message.getStatusList().isEmpty()) {
+                    LOGGER.debug("Status update is not for current goal! Action:[" + this.actionName + "]");
+                }
             }
         }
         // Propagate the callback
@@ -391,14 +393,16 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
         GoalStatus goalStatus = null;
         if (statusMessage != null) {
             final List<GoalStatus> statusList = statusMessage.getStatusList();
-            if (this.goalManager.getActionGoal() != null) {
+
+            if (this.goalManager.getActionGoal() != null && statusMessage.getStatusList() != null && !statusMessage.getStatusList().isEmpty()) {
                 final String idToFind = this.goalManager.getActionGoal().getGoalId();
 
                 if (idToFind != null) {
                     final List<GoalStatus> goalStatuses = statusList.stream().filter(goalStatusParam -> goalStatusParam.getGoalId().getId().equals(idToFind)).collect(Collectors.toList());
                     final int goalStatusesSize = goalStatuses.size();
-                    if (LOGGER.isDebugEnabled() && (goalStatusesSize >= 0)) {
-                        LOGGER.debug("Found [" + goalStatuses.size() + "] goals with ID: " + idToFind);
+                    if (LOGGER.isInfoEnabled() && (goalStatusesSize >= 0) && !statusList.isEmpty()) {
+                        LOGGER.info("Found [" + goalStatuses.size() + "] statuses for goal ID: " + idToFind + " action:[" + actionName + "]");
+
                     }
                     if (goalStatusesSize > 0) {
                         goalStatus = goalStatuses.stream().findAny().orElse(null);
@@ -406,7 +410,9 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
                             if (goalStatus != null) {
                                 for (final GoalStatus status : goalStatuses) {
                                     goalStatus = goalStatus.getGoalId().getStamp().compareTo(status.getGoalId().getStamp()) >= 0 ? goalStatus : status;
-
+                                    if (LOGGER.isTraceEnabled()) {
+                                        LOGGER.trace("Latest status: [" + goalStatus.getStatus() + "," + goalStatus.getText() + "] for goal with ID: " + idToFind + " action:[" + actionName + "]");
+                                    }
 
                                 }
                             }
