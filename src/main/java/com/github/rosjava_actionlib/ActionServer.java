@@ -26,7 +26,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ros.internal.message.Message;
-import org.ros.message.MessageListener;
+import org.ros.message.MessageFactory;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
@@ -36,14 +36,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Class to encapsulate the actiolib server's communication and goal management.
+ * Class to encapsulate the actionlib server's communication and goal management.
  *
  * @author Spyros Koukas
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-public final class ActionServer<T_ACTION_GOAL extends Message,
-        T_ACTION_FEEDBACK extends Message,
-        T_ACTION_RESULT extends Message> {
+public final class ActionServer<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK extends Message, T_ACTION_RESULT extends Message> {
+
     private static final Log LOGGER = LogFactory.getLog(ActionServer.class);
 
     //default status_frequency is 5Hz for python and cpp
@@ -64,28 +63,30 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
         }
     }
 
-
+    //Final
     private final String actionGoalType;
     private final String actionResultType;
     private final String actionFeedbackType;
+    private final String actionName;
+    private final ActionServerListener<T_ACTION_GOAL> actionServerListener;
+    private final MessageFactory messageFactory;
+    private final Timer statusTick = new Timer();
+    private final ConcurrentHashMap<String, ServerGoal<T_ACTION_GOAL>> goalIdToGoalStatusMap = new ConcurrentHashMap<>();
+
+
+    //Non Final
     private Subscriber<T_ACTION_GOAL> goalSubscriber = null;
     private Subscriber<GoalID> cancelSubscriber = null;
-
     private Publisher<T_ACTION_RESULT> resultPublisher = null;
     private Publisher<T_ACTION_FEEDBACK> feedbackPublisher = null;
     private Publisher<GoalStatusArray> statusPublisher = null;
-    private final ConnectedNode node;
-    private final String actionName;
-    private final ActionServerListener<T_ACTION_GOAL> actionServerListener;
 
-    private Timer statusTick = new Timer();
-    private ConcurrentHashMap<String, ServerGoal<T_ACTION_GOAL>> goalIdToGoalStatusMap = new ConcurrentHashMap<>(1);
 
     /**
      * Constructor.
      *
-     * @param node                 Object representing a node connected to a ROS master.
-     * @param actionServerListener the Listener of the T_ACTION_GOAL this object is used to consume incoming goals
+     * @param connectedNode        Object representing a node connected to a ROS master.
+     * @param actionServerListener the Listener of the T_ACTION_GOAL, actionServerListener is used to consume incoming goals
      * @param actionName           String that identifies the name of this action. This name
      *                             is used for naming the ROS topics.
      * @param actionGoalType       String holding the type for the action goal message.
@@ -94,26 +95,26 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * @param actionResultType     String holding the type for the action result
      *                             message.
      */
-    public ActionServer(final ConnectedNode node
+    public ActionServer(final ConnectedNode connectedNode
             , final ActionServerListener<T_ACTION_GOAL> actionServerListener
             , final String actionName
             , final String actionGoalType
             , final String actionFeedbackType
             , final String actionResultType) {
-        Objects.requireNonNull(node);
+        Objects.requireNonNull(connectedNode);
         Objects.requireNonNull(actionServerListener);
         Preconditions.checkArgument(StringUtils.isNotBlank(actionName));
         Preconditions.checkArgument(StringUtils.isNotBlank(actionGoalType));
         Preconditions.checkArgument(StringUtils.isNotBlank(actionFeedbackType));
         Preconditions.checkArgument(StringUtils.isNotBlank(actionResultType));
         this.actionServerListener = actionServerListener;
-        this.node = node;
+
         this.actionName = actionName;
         this.actionGoalType = actionGoalType;
         this.actionFeedbackType = actionFeedbackType;
         this.actionResultType = actionResultType;
-
-        this.connect(node);
+        this.messageFactory = connectedNode.getTopicMessageFactory();
+        this.connect(connectedNode);
     }
 
 
@@ -125,6 +126,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * @see actionlib_msgs.GoalStatusArray
      */
     public final void sendStatus(final GoalStatusArray status) {
+
         this.statusPublisher.publish(status);
     }
 
@@ -149,12 +151,12 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     /**
      * Publish the action server topics: /status, /feedback, /result
      *
-     * @param node The object representing a node connected to a ROS master.
+     * @param connectedNode The object representing a connectedNode connected to a ROS master.
      */
-    private final void publishServer(final ConnectedNode node) {
-        this.statusPublisher = node.newPublisher(this.getActionStatusTopic(), GoalStatusArray._TYPE);
-        this.feedbackPublisher = node.newPublisher(this.getActionFeedbackTopic(), actionFeedbackType);
-        this.resultPublisher = node.newPublisher(this.getActionResultTopic(), actionResultType);
+    private final void publishServer(final ConnectedNode connectedNode) {
+        this.statusPublisher = connectedNode.newPublisher(this.getActionStatusTopic(), GoalStatusArray._TYPE);
+        this.feedbackPublisher = connectedNode.newPublisher(this.getActionFeedbackTopic(), actionFeedbackType);
+        this.resultPublisher = connectedNode.newPublisher(this.getActionResultTopic(), actionResultType);
         this.statusTick.scheduleAtFixedRate(new TimerTask() {
             @Override
             public final void run() {
@@ -235,16 +237,16 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * Stop publishing the action server topics.
      */
     private final void unpublishServer() {
-        if (this.statusTick != null) {
-            try {
-                this.statusTick.purge();
-                this.statusTick.cancel();
-                this.statusTick = null;
 
-            } catch (final Exception exception) {
-                LOGGER.error(ExceptionUtils.getStackTrace(exception));
-            }
+        try {
+            this.statusTick.purge();
+            this.statusTick.cancel();
+
+
+        } catch (final Exception exception) {
+            LOGGER.error(ExceptionUtils.getStackTrace(exception));
         }
+
 
         if (this.statusPublisher != null) {
             try {
@@ -282,19 +284,9 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
         this.goalSubscriber = node.newSubscriber(this.getActionGoalTopic(), actionGoalType);
         this.cancelSubscriber = node.newSubscriber(this.getActionCancelTopic(), GoalID._TYPE);
 
-        this.goalSubscriber.addMessageListener(new MessageListener<>() {
-            @Override
-            public void onNewMessage(final T_ACTION_GOAL message) {
-                gotGoal(message);
-            }
-        });
+        this.goalSubscriber.addMessageListener(this::gotGoal);
 
-        this.cancelSubscriber.addMessageListener(new MessageListener<GoalID>() {
-            @Override
-            public void onNewMessage(final GoalID message) {
-                gotCancel(message);
-            }
-        });
+        this.cancelSubscriber.addMessageListener(this::gotCancel);
     }
 
     /**
@@ -315,33 +307,35 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      * Called when a message is received from the subscribed goal topic.
      */
     public final void gotGoal(final T_ACTION_GOAL goal) {
-        final String goalIdString = getGoalId(goal).getId();
+        if (goal != null) {
+            final String goalIdString = getGoalId(goal).getId();
 
-        // start tracking this newly received goal
-        this.goalIdToGoalStatusMap.put(goalIdString, new ServerGoal<>(goal));
+            // start tracking this newly received goal
+            this.goalIdToGoalStatusMap.put(goalIdString, new ServerGoal<>(goal));
 
-        // Propagate the callback
+            //this#actionServerListener is guaranteed to never be null, this call is for information purposes only
+            this.actionServerListener.goalReceived(goal);
 
-        // inform the user of a received message
-        this.actionServerListener.goalReceived(goal);
-        // ask the user to accept the goal
-        final boolean accepted = this.actionServerListener.acceptGoal(goal);
-        if (accepted) {
-            // the user accepted the goal
-            this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.ACCEPT);
+            // ask if the user accepts the goal
+            final boolean accepted = this.actionServerListener.acceptGoal(goal);
 
-        } else {
-            // the user rejected the goal
-            this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.REJECT);
+            if (accepted) {
+                this.setAccepted(goalIdString);
+
+            } else {
+                this.setRejected(goalIdString);
+            }
+            this.sendStatusTick();
         }
-
     }
 
     /**
      * Called when we get a message on the subscribed cancel topic.
      */
-    public final void gotCancel(final GoalID gid) {
-        this.actionServerListener.cancelReceived(gid);
+    public final void gotCancel(final GoalID goalID) {
+        if (goalID != null) {
+            this.actionServerListener.cancelReceived(goalID);
+        }
     }
 
     /**
@@ -350,12 +344,12 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
      */
     public final void sendStatusTick() {
         try {
-            final GoalStatusArray status = this.statusPublisher.newMessage();
+            final GoalStatusArray status = this.messageFactory.newFromType(GoalStatusArray._TYPE);
             final List<GoalStatus> goalStatusList = new ArrayList<>();
 
-            for (final Iterator<ServerGoal<T_ACTION_GOAL>> sgIterator = this.goalIdToGoalStatusMap.values().iterator(); sgIterator.hasNext(); ) {
-                final ServerGoal<T_ACTION_GOAL> serverGoal = sgIterator.next();
-                final GoalStatus goalStatus = node.getTopicMessageFactory().newFromType(GoalStatus._TYPE);
+            for (final ServerGoal<T_ACTION_GOAL> serverGoal : this.goalIdToGoalStatusMap.values()) {
+
+                final GoalStatus goalStatus = this.messageFactory.newFromType(GoalStatus._TYPE);
                 goalStatus.setGoalId(getGoalId(serverGoal.goal));
                 goalStatus.setStatus((byte) serverGoal.stateMachine.getState());
                 goalStatusList.add(goalStatus);
@@ -371,7 +365,6 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
-     *
      * @return a new T_ACTION_RESULT result message
      */
     public final T_ACTION_RESULT newResultMessage() {
@@ -379,7 +372,6 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
-     *
      * @return a new T_ACTION_FEEDBACK Message
      */
     public final T_ACTION_FEEDBACK newFeedbackMessage() {
@@ -436,6 +428,22 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
+     * The user accepted the goal
+     */
+    private final void setAccepted(final String goalIdString) {
+        // the user accepted the goal
+        this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.ACCEPT);
+    }
+
+    /**
+     * the user rejected the goal
+     */
+    private final void setRejected(final String goalIdString) {
+        // the user rejected the goal
+        this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.REJECT);
+    }
+
+    /**
      * Express an aborted event for this goal. The state of the goal will be updated.
      */
     public final void setAbort(final String goalIdString) {
@@ -457,7 +465,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     }
 
     /**
-     * Publishes the server's topics and suscribes to the client's topics.
+     * Publishes the server's topics and subscribes to the client's topics.
      */
     private final void connect(final ConnectedNode node) {
         publishServer(node);
@@ -472,6 +480,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message,
     public final void finish() {
         unpublishServer();
         unsubscribeToClient();
+
     }
 
 }
