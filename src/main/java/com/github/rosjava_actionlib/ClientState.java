@@ -71,8 +71,8 @@ public enum ClientState {
     }
 
     /**
-     * @param state
      *
+     * @param state
      * @return
      */
     public final boolean isAmong(final ClientState... state) {

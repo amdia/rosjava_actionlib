@@ -186,6 +186,7 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
 
 
     /**
+     *
      * @return
      */
     public final T_ACTION_GOAL getActionGoalMessage() {
@@ -193,7 +194,8 @@ public final class ActionGoal<T_ACTION_GOAL extends Message> {
     }
 
     /**
-     * @return
+     *
+     * @param actionGoalMessage
      */
     public final void setActionGoalMessage(final T_ACTION_GOAL actionGoalMessage) {
         this.goalMessage = actionGoalMessage;
