@@ -38,7 +38,7 @@ import java.util.List;
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  * @author Spyros Koukas
  */
-class SimpleClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
+public class SimpleClient extends AbstractNodeMain implements ActionClientListener<FibonacciActionFeedback, FibonacciActionResult> {
     static {
         // comment this line if you want logs activated
         System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
@@ -125,7 +125,7 @@ class SimpleClient extends AbstractNodeMain implements ActionClientListener<Fibo
         actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, "/fibonacci", FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
 
         this.isStarted = true;
-
+//        startTasks();
 //        System.exit(0);
     }
 

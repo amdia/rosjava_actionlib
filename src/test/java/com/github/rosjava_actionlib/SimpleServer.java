@@ -32,7 +32,7 @@ import org.ros.node.ConnectedNode;
  * Class to test the actionlib server.
  * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
  */
-class SimpleServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
+public class SimpleServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
     private static final Logger logger= LogManager.getLogger(SimpleClient.class);
     private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> actionServer = null;
     private volatile FibonacciActionGoal currentGoal = null;

@@ -1,10 +1,13 @@
 plugins {
     id 'maven-publish'
+	id 'maven'
     id 'java-library'
     id 'idea'
+	id 'eclipse'
     id 'java'
+    id 'application'
 }
-group 'com.github.rosjava'
+group 'com.github.rosjava_actionlib'
 version = '0.3.1-SNAPSHOT'
 description = 'A pure java version of actionlib'
 sourceCompatibility = 11
@@ -20,6 +23,19 @@ repositories {
     }
 }
 
+// to have class from test directory in .jar used for roslaunch (plugin application)
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main','src/test']
+        }
+    }
+}
+
+// to be able to use java class with roslaunch (main in rosrun) (plugin java)
+application {
+    mainClassName = 'org.ros.RosRun'
+}
 
 dependencies {
 
@@ -39,12 +55,20 @@ dependencies {
     implementation 'org.apache.commons:commons-configuration2:2.3'
 
     //During testing use the Log4j2 logging
-    testCompile 'org.apache.logging.log4j:log4j-core:2.13.1'
-    testCompile 'org.apache.logging.log4j:log4j-jcl:2.13.1'
+    testCcompile 'org.apache.logging.log4j:log4j-core:2.13.1'
+    testCcompile 'org.apache.logging.log4j:log4j-jcl:2.13.1'
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.ros.rosjava_messages:actionlib_tutorials:0.1.10'
-    testCompile 'org.ros.rosjava_messages:turtle_actionlib:0.1.10'
+    testCcompile 'junit:junit:4.12'
+    testCcompile 'org.ros.rosjava_messages:actionlib_tutorials:0.1.10'
+    testCcompile 'org.ros.rosjava_messages:turtle_actionlib:0.1.10'
+
+	// to be able to compile test directory in jar
+	//compile 'org.apache.logging.log4j:log4j-core:2.13.1'
+    //compile 'org.apache.logging.log4j:log4j-jcl:2.13.1'
+
+    //compile 'junit:junit:4.12'
+    //compile 'org.ros.rosjava_messages:actionlib_tutorials:0.1.10'
+    //compile 'org.ros.rosjava_messages:turtle_actionlib:0.1.10'
 
 }
 
@@ -55,6 +79,20 @@ jar {
     }
 }
 
+// to launch test files with roslaunch
+task deployApp(dependsOn: 'installDist')  {
+ doLast {
+	  File binDir = new File(project.projectDir, '/bin')
+	  if (! binDir.isDirectory()) {
+		println "Creating $binDir directory"
+		binDir.mkdirs()
+	  }
+	  File link = new File(binDir,"execute")
+	  File target = new File(project.projectDir, "build/install/$project.name/bin/$project.name")
+	  println "Creating symlink from $link.absolutePath to $target.absolutePath"
+	  ant.symlink(link: link.absolutePath, resource: target.absolutePath, overwrite: true)
+  }
+}
 
 
 
