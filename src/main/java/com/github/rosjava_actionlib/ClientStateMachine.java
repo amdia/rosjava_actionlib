@@ -428,10 +428,10 @@ final class ClientStateMachine {
     /**
      * Signal that the result has been received.
      * <p>
-     * If this {@link ClientStateMachine} is in an {@link ClientState#WAITING_FOR_RESULT}
+     * If this {@link ClientStateMachine} is in a {@link ClientState#WAITING_FOR_RESULT}
      * then its next state will be a{@link ClientState#DONE} state.
      * <p>
-     * If this {@link ClientStateMachine} is not in an {@link ClientState#WAITING_FOR_RESULT}
+     * If this {@link ClientStateMachine} is not in a {@link ClientState#WAITING_FOR_RESULT}
      * then its next state will be a {@link ClientState#ERROR} state.
      */
     final void resultReceived() {
@@ -442,10 +442,6 @@ final class ClientStateMachine {
         }
     }
 
-    // TODO: implement method
-    final void markAsLost() {
-        throw new NotImplementedException("Not Implemented");
-    }
 
     /**
      * @return the

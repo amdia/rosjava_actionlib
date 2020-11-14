@@ -19,6 +19,8 @@ package com.github.rosjava_actionlib;
 
 import org.ros.internal.message.Message;
 
+import java.util.Objects;
+
 /**
  * Class that binds and action goal with a state machine to track its state.
  *
@@ -50,6 +52,7 @@ final class ClientGoalManager<T_ACTION_GOAL extends Message> {
      * @param actionGoal
      */
     ClientGoalManager(final ActionGoal<T_ACTION_GOAL> actionGoal) {
+        Objects.requireNonNull(actionGoal);
         this.actionGoal = actionGoal;
         this.stateMachine = new ClientStateMachine(ClientState.ERROR);
     }
