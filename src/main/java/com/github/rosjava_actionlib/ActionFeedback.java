@@ -1,4 +1,5 @@
 /**
+ * Copyright 2020 Spyros Koukas
  * Copyright 2015 Ekumen www.ekumenlabs.com
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
