@@ -315,7 +315,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param message The result message received. The type of this message
      *                depends on the application.
      */
-    public final void gotResult(T_ACTION_RESULT message) {
+    private final void gotResult(T_ACTION_RESULT message) {
         ActionResult<T_ACTION_RESULT> ar = new ActionResult(message);
         if (ar.getGoalStatusMessage().getGoalId().getId().equals(goalManager.getActionGoal().getGoalId())) {
             goalManager.updateStatus(ar.getGoalStatusMessage().getStatus());
@@ -335,7 +335,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      * @param message The feedback message received. The type of this message
      *                depends on the application.
      */
-    public final void gotFeedback(final T_ACTION_FEEDBACK message) {
+    private final void gotFeedback(final T_ACTION_FEEDBACK message) {
         ActionFeedback<T_ACTION_FEEDBACK> af = new ActionFeedback(message);
         if (af.getGoalStatusMessage().getGoalId().getId().equals(goalManager.getActionGoal().getGoalId())) {
             goalManager.updateStatus(af.getGoalStatusMessage().getStatus());
@@ -355,7 +355,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
      *
      * @see actionlib_msgs.GoalStatusArray
      */
-    public final void gotStatus(final GoalStatusArray message) {
+    private final void gotStatus(final GoalStatusArray message) {
         this.statusSubscriberFlag = true;
 
         // Find the status for our current goal
