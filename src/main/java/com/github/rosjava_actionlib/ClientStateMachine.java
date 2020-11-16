@@ -17,7 +17,6 @@
 
 package com.github.rosjava_actionlib;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -65,7 +64,9 @@ final class ClientStateMachine {
      */
     final synchronized void setState(final ClientState state) {
         Objects.requireNonNull(state);
-        log.info("ClientStateMachine - State changed from " + this.state + " to " + state);
+        if(log.isInfoEnabled()) {
+            log.info("ClientStateMachine - State changed from " + this.state + " to " + state);
+        }
         this.state = state;
     }
 
@@ -432,13 +433,13 @@ final class ClientStateMachine {
      * then its next state will be a{@link ClientState#DONE} state.
      * <p>
      * If this {@link ClientStateMachine} is not in a {@link ClientState#WAITING_FOR_RESULT}
-     * then its next state will be a {@link ClientState#ERROR} state.
+     * then its next state will be a {@link ClientState#NO_GOAL} state.
      */
     final void resultReceived() {
         if (this.state == ClientState.WAITING_FOR_RESULT) {
             this.state = ClientState.DONE;
         } else {
-            this.state = ClientState.ERROR;
+            this.state = ClientState.NO_GOAL;
         }
     }
 

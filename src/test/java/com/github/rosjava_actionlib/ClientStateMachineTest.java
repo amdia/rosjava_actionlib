@@ -14,11 +14,11 @@ import static org.junit.Assert.*;
  */
 public class ClientStateMachineTest {
     private ClientStateMachine clientStateMachine;
-    private static final ClientState INITIAL_CLIENT_STATE=ClientState.ERROR;
+    private static final ClientState INITIAL_CLIENT_STATE=ClientState.NO_GOAL;
     // Executes before each test.
     @Before
     public void setUp() {
-        clientStateMachine = new ClientStateMachine(ClientState.ERROR);
+        clientStateMachine = new ClientStateMachine(ClientState.NO_GOAL);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class ClientStateMachineTest {
     private void checkResultReceivedWhileNotWaitingForResult(ClientState state) {
         clientStateMachine.setState(state);
         clientStateMachine.resultReceived();
-        assertEquals("Failed test on initial state " + state, ClientState.ERROR, clientStateMachine.getState());
+        assertEquals("Failed test on initial state " + state, ClientState.NO_GOAL, clientStateMachine.getState());
     }
 
     @Test

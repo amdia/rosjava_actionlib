@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * The client states
  */
 public enum ClientState {
-    ERROR(-3),
+    NO_GOAL(-3),
     INVALID_TRANSITION(-2),
     NO_TRANSITION(-1),
     WAITING_FOR_GOAL_ACK(0),

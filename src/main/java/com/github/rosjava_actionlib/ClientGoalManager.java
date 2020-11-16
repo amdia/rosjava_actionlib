@@ -54,7 +54,7 @@ final class ClientGoalManager<T_ACTION_GOAL extends Message> {
     ClientGoalManager(final ActionGoal<T_ACTION_GOAL> actionGoal) {
         Objects.requireNonNull(actionGoal);
         this.actionGoal = actionGoal;
-        this.stateMachine = new ClientStateMachine(ClientState.ERROR);
+        this.stateMachine = new ClientStateMachine(ClientState.NO_GOAL);
     }
 
     /**
@@ -63,7 +63,7 @@ final class ClientGoalManager<T_ACTION_GOAL extends Message> {
     final void setGoal(final ActionGoal<T_ACTION_GOAL> actionGoal) {
         this.actionGoal = actionGoal;
         if (this.stateMachine.isRunning()) {
-            this.stateMachine.setState(ClientState.ERROR);
+            this.stateMachine.setState(ClientState.NO_GOAL);
         }
         this.stateMachine.resetToState(ClientState.WAITING_FOR_GOAL_ACK);
     }
