@@ -53,17 +53,17 @@ final class ServerStateMachine {
         public final static String eventToString(final int event) {
             switch (event) {
                 case 1:
-                    return "CANCEL_REQUEST(" + event + ")";
+                    return "CANCEL_REQUEST(1)";
                 case 2:
-                    return "CANCEL(" + event + ")";
+                    return "CANCEL(2)";
                 case 3:
-                    return "REJECT(" + event + ")";
+                    return "REJECT(3)";
                 case 4:
-                    return "ACCEPT(" + event + ")";
+                    return "ACCEPT(4)";
                 case 5:
-                    return "SUCCEED(" + event + ")";
+                    return "SUCCEED(5)";
                 case 6:
-                    return "ABORT(" + event + ")";
+                    return "ABORT(6)";
                 default:
                     return "UNKNOWN_STATE(" + event + ")";
             }
