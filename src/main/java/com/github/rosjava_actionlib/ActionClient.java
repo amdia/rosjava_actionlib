@@ -548,7 +548,7 @@ public final class ActionClient<T_ACTION_GOAL extends Message,
     /**
      * @return
      */
-    public final ClientState getGoalState() {
+    final ClientState getGoalState() {
         return goalManager.getGoalState();
     }
 

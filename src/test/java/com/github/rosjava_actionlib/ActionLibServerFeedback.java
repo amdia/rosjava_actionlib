@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.test.actionlib.clientServer;
+package com.github.rosjava_actionlib;
 
 import actionlib_msgs.GoalID;
 import actionlib_tutorials.FibonacciActionFeedback;
 import actionlib_tutorials.FibonacciActionGoal;
 import actionlib_tutorials.FibonacciActionResult;
-import com.github.rosjava_actionlib.ActionServer;
-import com.github.rosjava_actionlib.ActionServerListener;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.test.actionlib.turtlesim;
+package com.github.rosjava_actionlib;
 
 
-import com.github.rosjava_actionlib.ClientState;
 import eu.test.utils.RosExecutor;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;

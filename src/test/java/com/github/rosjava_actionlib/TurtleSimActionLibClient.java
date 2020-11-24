@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.test.actionlib.turtlesim;
+package com.github.rosjava_actionlib;
 
 import actionlib_msgs.GoalID;
 import actionlib_msgs.GoalStatus;
 import actionlib_msgs.GoalStatusArray;
-import com.github.rosjava_actionlib.ActionClient;
-import com.github.rosjava_actionlib.ActionClientListener;
-import com.github.rosjava_actionlib.ClientState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.ros.message.Duration;
