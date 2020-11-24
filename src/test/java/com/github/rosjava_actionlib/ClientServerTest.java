@@ -22,6 +22,8 @@ import eu.test.utils.TestProperties;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -34,14 +36,10 @@ import java.util.concurrent.TimeUnit;
  * Demonstrate and test {@link SimpleServer} with {@link SimpleClient}
  */
 public class ClientServerTest {
-//    static {
-//        // comment this line if you want logs activated
-//        System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.NoOpLog");
-//    }
+    private static final Logger LOGGER= LogManager.getLogger(ClientServerTest.class);
 
-    private static Log logger = LogFactory.getLog(ClientServerTest.class);
 
-    private static final TestProperties testProperties=TestProperties.getFromDefaultFile();
+    private static final TestProperties testProperties = TestProperties.getFromDefaultFile();
 
     private static final String ROS_HOST_IP = testProperties.getRosHostIp();
     private static final int ROS_MASTER_URI_PORT = testProperties.getRosMasterUriPort();
@@ -56,19 +54,20 @@ public class ClientServerTest {
     @Before
     public void before() {
         try {
-            rosCore = RosCore.newPublic(ROS_MASTER_URI_PORT);
-            rosCore.start();
-            rosCore.awaitStart(testProperties.getRosCoreStartWaitMillis(), TimeUnit.MILLISECONDS);
-            simpleServer = new SimpleServer();
+            this.rosCore = RosCore.newPublic(ROS_MASTER_URI_PORT);
+            this.rosCore.start();
+            this.rosCore.awaitStart(testProperties.getRosCoreStartWaitMillis(), TimeUnit.MILLISECONDS);
+            this.simpleServer = new SimpleServer();
 
-            simpleClient = new SimpleClient();
+            this.simpleClient = new SimpleClient();
 
-            rosExecutor.startNodeMain(simpleServer, simpleServer.getDefaultNodeName().toString(),  ROS_MASTER_URI);
-            simpleServer.waitForStart();
-            rosExecutor.startNodeMain(simpleClient, simpleClient.getDefaultNodeName().toString(),  ROS_MASTER_URI);
-            simpleClient.waitForStart();
+            this.rosExecutor.startNodeMain(this.simpleServer, this.simpleServer.getDefaultNodeName().toString(), ROS_MASTER_URI);
+            this.simpleServer.waitForStart();
+            this.rosExecutor.startNodeMain(this.simpleClient, this.simpleClient.getDefaultNodeName().toString(), ROS_MASTER_URI);
+            final boolean connectedToServer = this.simpleClient.waitForServerConnection(20);
+            Assume.assumeTrue("Not Connected to server", connectedToServer);
         } catch (final Exception er3) {
-            logger.error(ExceptionUtils.getStackTrace(er3));
+            LOGGER.error(ExceptionUtils.getStackTrace(er3));
             Assume.assumeNoException(er3);
 
         }
@@ -77,29 +76,24 @@ public class ClientServerTest {
 
 
     @Test
-    public void testClientServer2() {
-
-
+    public void testClientServer() {
         try {
-
-
-            logger.trace("Starting Tasks");
-
+            LOGGER.trace("Starting Tasks");
             simpleClient.startTasks();
-            logger.trace("Falling asleep");
+            LOGGER.trace("Falling asleep");
 
             try {
                 Thread.sleep(10_000);
             } catch (final Exception er3) {
-                logger.error(ExceptionUtils.getStackTrace(er3));
+                LOGGER.error(ExceptionUtils.getStackTrace(er3));
             }
-            logger.trace("Awaken");
+            LOGGER.trace("Awaken");
 
-            logger.trace("Stopping");
+            LOGGER.trace("Stopping");
 
 
         } catch (final Exception e) {
-            logger.error(ExceptionUtils.getStackTrace(e));
+            LOGGER.error(ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -108,12 +102,12 @@ public class ClientServerTest {
         try {
             rosExecutor.stopNodeMain(simpleServer);
         } catch (final Exception e2) {
-            logger.error(ExceptionUtils.getStackTrace(e2));
+            LOGGER.error(ExceptionUtils.getStackTrace(e2));
         }
         try {
             rosExecutor.stopNodeMain(simpleClient);
         } catch (final Exception e2) {
-            logger.error(ExceptionUtils.getStackTrace(e2));
+            LOGGER.error(ExceptionUtils.getStackTrace(e2));
         }
 
 
@@ -122,7 +116,7 @@ public class ClientServerTest {
                 this.rosExecutor.stopAllNodesAndClose();
             }
         } catch (final Exception e) {
-            logger.error(ExceptionUtils.getStackTrace(e));
+            LOGGER.error(ExceptionUtils.getStackTrace(e));
         }
 
         try {
@@ -131,7 +125,7 @@ public class ClientServerTest {
 
             }
         } catch (final Exception e) {
-            logger.error(ExceptionUtils.getStackTrace(e));
+            LOGGER.error(ExceptionUtils.getStackTrace(e));
         }
 
         this.simpleClient = null;
