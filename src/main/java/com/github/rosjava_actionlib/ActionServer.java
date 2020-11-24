@@ -305,6 +305,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK
 
     /**
      * Called when a message is received from the subscribed goal topic.
+     * @param goal
      */
     public final void gotGoal(final T_ACTION_GOAL goal) {
         if (goal != null) {
@@ -330,7 +331,9 @@ public final class ActionServer<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK
     }
 
     /**
-     * Called when we get a message on the subscribed cancel topic.
+     *  Called when we get a message on the subscribed cancel topic.
+     *
+     * @param goalID
      */
     public final void gotCancel(final GoalID goalID) {
         if (goalID != null) {
@@ -413,6 +416,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK
 
     /**
      * Express a succeed event for this goal. The state of the goal will be updated.
+     * @param goalIdString
      */
     public final void setSucceed(final String goalIdString) {
         this.goalIdToGoalStatusMap.get(goalIdString).stateMachine.transition(ServerStateMachine.Events.SUCCEED);
@@ -420,6 +424,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK
 
     /**
      * Express a preempted event for this goal. The state of the goal will be updated.
+     * @param goalIdString
      */
     public final void setPreempt(final String goalIdString) {
 
@@ -437,6 +442,7 @@ public final class ActionServer<T_ACTION_GOAL extends Message, T_ACTION_FEEDBACK
 
     /**
      * the user rejected the goal
+     * @param goalIdString 
      */
     private final void setRejected(final String goalIdString) {
         // the user rejected the goal
