@@ -29,11 +29,13 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 
 /**
+ * @deprecated see {@link FutureBasedClient} which utilizes the {@link ActionFuture}
  * Class to test the actionlib server.
  * This is a simple server with the ability to process only a single goal.
  *  @author Ernesto Corbellini ecorbellini@ekumenlabs.com
- * @author Spyros Koukas
+ *  @author Spyros Koukas
  */
+@Deprecated
 class SimpleServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
     private static final Logger LOGGER = LogManager.getLogger(SimpleClient.class);
     private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> actionServer = null;
