@@ -143,7 +143,6 @@ class FutureBasedClient extends AbstractNodeMain implements ActionClientListener
             for (final GoalStatus goalStatus : statusList) {
                 LOGGER.info("GoalID: " + goalStatus.getGoalId().getId() + " GoalStatus: " + goalStatus.getStatus() + " - " + goalStatus.getText());
             }
-            LOGGER.info("Goal Status: " + this.actionClient.getGoalState());
         }
     }
 
