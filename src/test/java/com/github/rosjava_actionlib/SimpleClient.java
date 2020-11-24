@@ -156,13 +156,13 @@ class SimpleClient extends AbstractNodeMain implements ActionClientListener<Fibo
     }
 
     @Override
-    public void statusReceived(final GoalStatusArray status) {
+    public final void statusReceived(final GoalStatusArray status) {
         if (LOGGER.isInfoEnabled()) {
-            List<GoalStatus> statusList = status.getStatusList();
+            final List<GoalStatus> statusList = status.getStatusList();
             for (GoalStatus gs : statusList) {
                 LOGGER.info("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
             }
-            LOGGER.info("Current state of our goal: " + actionClient.getGoalState());
+
         }
     }
 
