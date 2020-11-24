@@ -62,11 +62,12 @@ Instructions are provided hereafter for Windows and Linux.
 1. TODO
 
 ## Using a Client
+
 When an [ActionClient](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/main/java/com/github/rosjava_actionlib/ActionClient.java) invokes a server it returns an [ActionFuture](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/main/java/com/github/rosjava_actionlib/ActionFuture.java).
 
 See an example client at [FutureBasedClient](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/test/java/com/github/rosjava_actionlib/FutureBasedClient.java) .
 
-The [FutureBasedClient](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/test/java/com/github/rosjava_actionlib/FutureBasedClient.java) usage is demonstrated in [FutureBasedClientTest](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/test/java/com/github/rosjava_actionlib/FutureBasedClientTest.java) 
+The [FutureBasedClient](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/test/java/com/github/rosjava_actionlib/FutureBasedClient.java) usage is demonstrated in [FutureBasedClientTest](https://github.com/SpyrosKou/rosjava_actionlib/blob/kinetic/src/test/java/com/github/rosjava_actionlib/FutureBasedClientTest.java). 
 
 ## Output from the test client
 The test client will connect to the fibonacci server and send it a goal. It
