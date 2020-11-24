@@ -23,8 +23,6 @@ import actionlib_tutorials.FibonacciActionResult;
 import eu.test.utils.RosExecutor;
 import eu.test.utils.TestProperties;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -39,8 +37,8 @@ import java.util.concurrent.TimeUnit;
  * Focus on {@link FutureBasedClient} status changes
  * Demonstrate future usage
  */
-public class ClientServerStatusTest {
-    private static final Logger LOGGER= LogManager.getLogger(ClientServerStatusTest.class);
+public class FutureBasedClientTest {
+    private static final Logger LOGGER= LogManager.getLogger(FutureBasedClientTest.class);
 
     private static final TestProperties testProperties = TestProperties.getFromDefaultFile();
 
@@ -77,7 +75,7 @@ public class ClientServerStatusTest {
     }
 
     /**
-     * Demonstrates status of Client
+     * Also demonstrates status of Client by printing client status when it changes
      */
     @Test
     public void testFutureBasedClientWithStatuses() {
@@ -111,7 +109,7 @@ public class ClientServerStatusTest {
     }
 
     /**
-     * Demonstrate future based result getting
+     * Demonstrate future based client usage
      */
     @Test
     public void testFutureBasedClient() {
