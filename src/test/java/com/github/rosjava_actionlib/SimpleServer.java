@@ -30,10 +30,12 @@ import org.ros.node.ConnectedNode;
 
 /**
  * Class to test the actionlib server.
- * @author Ernesto Corbellini ecorbellini@ekumenlabs.com
+ * This is a simple server with the ability to process only a single goal.
+ *  @author Ernesto Corbellini ecorbellini@ekumenlabs.com
+ * @author Spyros Koukas
  */
 class SimpleServer extends AbstractNodeMain implements ActionServerListener<FibonacciActionGoal> {
-    private static final Logger logger= LogManager.getLogger(SimpleClient.class);
+    private static final Logger LOGGER = LogManager.getLogger(SimpleClient.class);
     private ActionServer<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult> actionServer = null;
     private volatile FibonacciActionGoal currentGoal = null;
     private volatile boolean isStarted=false;
@@ -52,9 +54,9 @@ class SimpleServer extends AbstractNodeMain implements ActionServerListener<Fibo
         try{
           Thread.sleep(5);
         }catch (final InterruptedException ie){
-          logger.error(ExceptionUtils.getStackTrace(ie));
+          LOGGER.error(ExceptionUtils.getStackTrace(ie));
         }catch (final Exception e){
-          logger.error(ExceptionUtils.getStackTrace(e));
+          LOGGER.error(ExceptionUtils.getStackTrace(e));
         }
       }
     }
@@ -75,7 +77,7 @@ class SimpleServer extends AbstractNodeMain implements ActionServerListener<Fibo
                 id = currentGoal.getGoalId().getId();
                 actionServer.setSucceed(id);
                 actionServer.setGoalStatus(result.getStatus(), id);
-                System.out.println("Sending result...");
+                LOGGER.trace("Sending result...");
                 actionServer.sendResult(result);
                 currentGoal = null;
             }
@@ -84,12 +86,12 @@ class SimpleServer extends AbstractNodeMain implements ActionServerListener<Fibo
 
     @Override
     public void goalReceived(FibonacciActionGoal goal) {
-        System.out.println("Goal received.");
+        LOGGER.trace("Goal received.");
     }
 
     @Override
     public void cancelReceived(GoalID id) {
-        System.out.println("Cancel received.");
+        LOGGER.trace("Cancel received.");
     }
 
     @Override
@@ -97,10 +99,10 @@ class SimpleServer extends AbstractNodeMain implements ActionServerListener<Fibo
         // If we don't have a goal, accept it. Otherwise, reject it.
         if (currentGoal == null) {
             currentGoal = goal;
-            System.out.println("Goal accepted.");
+            LOGGER.trace("Goal accepted.");
             return true;
         } else {
-            System.out.println("We already have a goal! New goal reject.");
+            LOGGER.trace("We already have a goal! New goal reject.");
             return false;
         }
     }
