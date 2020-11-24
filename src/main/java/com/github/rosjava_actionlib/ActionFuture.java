@@ -22,7 +22,10 @@ import org.ros.internal.message.Message;
 import java.util.concurrent.Future;
 
 /**
+ * When an {@link ActionClient} invokes an action lib server it returns an {@link ActionFuture}
+ *
  * @author Spyros Koukas
+ *
  * @param <T_ACTION_GOAL>
  * @param <T_ACTION_FEEDBACK>
  * @param <T_ACTION_RESULT>

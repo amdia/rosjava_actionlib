@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Class to demonstrate/test the action futures
+ * Demonstrates the {@link ActionFuture} usage
  *
  * @author Spyros Koukas
  */
