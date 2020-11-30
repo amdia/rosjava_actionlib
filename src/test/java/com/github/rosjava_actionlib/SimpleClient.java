@@ -77,45 +77,55 @@ public class SimpleClient extends AbstractNodeMain implements ActionClientListen
     public void startTasks() {
         Duration serverTimeout = new Duration(20);
         boolean serverStarted;
-
+        
 
         // Attach listener for the callbacks
         actionClient.addListener(this);
         System.out.println("\nWaiting for action server to start...");
         serverStarted = actionClient.waitForActionServerToStart(new Duration(20));
         if (serverStarted) {
-            System.out.println("Action server started.\n");
+            System.out.println("Action server started.bouh\n");
         } else {
             System.out.println("No actionlib server found after waiting for " + serverTimeout.totalNsecs() / 1e9 + " seconds!");
             System.exit(1);
         }
-
+        try {
+			Thread.sleep(3000);
+		} catch (InterruptedException ex) {
+		}
         // Create Fibonacci goal message
         final FibonacciActionGoal goalMessage = (FibonacciActionGoal) actionClient.newGoalMessage();
         final FibonacciGoal fibonacciGoal = goalMessage.getGoal();
         // set Fibonacci parameter
-        fibonacciGoal.setOrder(3);
+        fibonacciGoal.setOrder(6);
         System.out.println("Sending goal...");
         actionClient.sendGoal(goalMessage);
         final GoalID gid1 = goalMessage.getGoalId();
         System.out.println("Sent goal with ID: " + gid1.getId());
         System.out.println("Waiting for goal to complete...");
-        while (actionClient.getGoalState() != ClientState.DONE) {
+        int c = 0;
+        
+        while (actionClient.getGoalState() != ClientState.DONE && c<1000) {
             sleep(1);
+            c++;
         }
-        System.out.println("Goal completed!\n");
+//        System.out.println("Goal completed!\n");
 
         System.out.println("Sending a new goal...");
         actionClient.sendGoal(goalMessage);
         final GoalID gid2 = goalMessage.getGoalId();
         System.out.println("Sent goal with ID: " + gid2.getId());
-        System.out.println("Cancelling this goal...");
-        actionClient.sendCancel(gid2);
         while (actionClient.getGoalState() != ClientState.DONE) {
-            sleep(1);
-        }
-        System.out.println("Goal cancelled succesfully.\n");
-        System.out.println("Bye!");
+        	sleep(1);
+    	}
+        System.out.println("Goal completed!\n");
+//        System.out.println("Cancelling this goal...");
+//        actionClient.sendCancel(gid2);
+//        while (actionClient.getGoalState() != ClientState.DONE) {
+//            sleep(1);
+//        }
+//        System.out.println("Goal cancelled succesfully.\n");
+//        System.out.println("Bye!");
 
     }
 
@@ -125,7 +135,8 @@ public class SimpleClient extends AbstractNodeMain implements ActionClientListen
         actionClient = new ActionClient<FibonacciActionGoal, FibonacciActionFeedback, FibonacciActionResult>(node, "/fibonacci", FibonacciActionGoal._TYPE, FibonacciActionFeedback._TYPE, FibonacciActionResult._TYPE);
 
         this.isStarted = true;
-//        startTasks();
+        // to uncomment to run in roslaunch
+        startTasks();
 //        System.exit(0);
     }
 
@@ -156,13 +167,13 @@ public class SimpleClient extends AbstractNodeMain implements ActionClientListen
 
     @Override
     public void statusReceived(final GoalStatusArray status) {
-        if(LOGGER.isInfoEnabled()) {
+//        if(LOGGER.isInfoEnabled()) {
             List<GoalStatus> statusList = status.getStatusList();
             for (GoalStatus gs : statusList) {
-                LOGGER.info("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
+            	System.out.println("GoalID: " + gs.getGoalId().getId() + " -- GoalStatus: " + gs.getStatus() + " -- " + gs.getText());
             }
-            LOGGER.info("Current state of our goal: " + actionClient.getGoalState());
-        }
+            System.out.println("Current state of our goal: " + actionClient.getGoalState());
+//        }
     }
 
     /**
