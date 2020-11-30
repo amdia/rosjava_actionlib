@@ -71,7 +71,7 @@ final class GoalIDGenerator {
         final Time currentTime = this.connectedNode.getCurrentTime();
         goalId.setStamp(currentTime);
 
-        final String id = this.nodeNamePlusSeparator + GoalIDGenerator.goalCount.incrementAndGet();
+        final String id = this.nodeNamePlusSeparator + GoalIDGenerator.goalCount.incrementAndGet() + SEPARATOR + currentTime.secs;
         goalId.setId(id);
     }
 }
