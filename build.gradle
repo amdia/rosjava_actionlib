@@ -3,9 +3,10 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'java'
+    id 'eclipse'
 }
 group 'com.github.rosjava'
-version = '0.3.1-SNAPSHOT'
+version = '0.3.1-SpyrosKou'
 description = 'A pure java version of actionlib'
 sourceCompatibility = 11
 
